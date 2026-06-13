@@ -114,10 +114,8 @@ footer{background:var(--ink);color:rgba(255,255,255,.4);text-align:center;paddin
   <div class="nav-logo">Е-<span>тариф</span></div>
   <div class="nav-links">
     <button class="active" onclick="goPage('p-home',this)">🏠 Головна</button>
-    <button onclick="goPage('p-fixed',this);buildFixedTabs()" id="nav-fixed" style="display:none;">🗂️ Штатні одиниці</button>
-    <button onclick="goPage('p-shtat',this);buildShtat()" id="nav-shtat" style="display:none;">📊 Штатний розпис</button>
-    <button onclick="goPage('p-tabel',this);buildTabel()" id="nav-tabel" style="display:none;">📅 Табель</button>
-    <button onclick="goPage('p3',this)">📬 Контакти</button>
+    <button onclick="buildMenuPage();goPage(&#39;p-menu&#39;,null)" id="nav-menu" style="display:none;">🏛️ Меню закладу</button>
+    <button onclick="goPage(&#39;p3&#39;,null)">📬 Контакти</button>
   </div>
 </nav>
 
@@ -188,21 +186,38 @@ footer{background:var(--ink);color:rgba(255,255,255,.4);text-align:center;paddin
 </div>
 
 
+<!-- PAGE: МЕНЮ ЗАКЛАДУ -->
+<div id="p-menu" class="page">
+  <div style="background:linear-gradient(135deg,#0e1a2b,#1a3555);color:#fff;padding:2rem 1.5rem 1.5rem;">
+    <div style="max-width:780px;margin:0 auto;">
+      <div id="menu-inst-badge" style="display:inline-block;background:rgba(232,161,32,.2);border:1px solid rgba(232,161,32,.4);color:#e8a120;font-size:.72rem;font-weight:700;padding:.22rem .8rem;border-radius:100px;margin-bottom:.75rem;letter-spacing:.07em;text-transform:uppercase;"></div>
+      <!-- Назва закладу — клікабельна для редагування -->
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.3rem;">
+        <h1 id="menu-inst-name" onclick="openInstNameEdit()" style="font-family:'Unbounded',sans-serif;font-size:clamp(1rem,3vw,1.5rem);font-weight:700;cursor:pointer;flex:1;" title="Натисніть щоб змінити назву">Заклад освіти</h1>
+        <button onclick="openInstNameEdit()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;padding:.3rem .65rem;border-radius:8px;font-size:.75rem;cursor:pointer;white-space:nowrap;">✏️ Змінити</button>
+      </div>
+      <p id="menu-inst-year" style="color:rgba(255,255,255,.55);font-size:.82rem;margin-bottom:.75rem;"></p>
+      <!-- Кнопка назад -->
+      <button onclick="goPage('p-home',null)" style="background:none;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.7);padding:.3rem .85rem;border-radius:20px;font-size:.75rem;cursor:pointer;">🏠 Вибрати інший заклад</button>
+    </div>
+  </div>
+  <div style="max-width:780px;margin:0 auto;padding:1.5rem 1rem 3rem;">
+    <div id="menu-sections-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.9rem;"></div>
+  </div>
+</div>
+
 <!-- PAGE: Інші категорії -->
 <div id="p-fixed" class="page">
-  <div style="background:linear-gradient(135deg,#0e1a2b 0%,#1a3555 50%,#1d6fa4 100%);color:#fff;padding:2.5rem 2rem 2rem;text-align:center;">
-    <div style="display:inline-block;background:rgba(232,161,32,.2);border:1px solid rgba(232,161,32,.4);color:#e8a120;font-size:.72rem;font-weight:700;padding:.28rem .85rem;border-radius:100px;margin-bottom:1rem;letter-spacing:.08em;text-transform:uppercase;">ЄТС · Фіксована ставка</div>
-    <h1 style="font-family:'Unbounded',sans-serif;font-size:clamp(1.2rem,3vw,1.8rem);font-weight:700;margin-bottom:.5rem;">Тарифікація персоналу</h1>
-    <p style="color:rgba(255,255,255,.7);font-size:.9rem;">Керівники · Педперсонал · Бібліотека · Медпрацівники · Робітники</p>
+  <div style="background:#f8f9fa;border-bottom:1px solid var(--bd);padding:.6rem 1rem;display:flex;align-items:center;gap:.75rem;position:sticky;top:54px;z-index:99;">
+    <button onclick="goPage(&#39;p-menu&#39;,null)" style="background:none;border:1px solid var(--bd);color:var(--mu);padding:.3rem .8rem;border-radius:20px;font-size:.78rem;cursor:pointer;white-space:nowrap;font-family:&#39;Manrope&#39;,sans-serif;">← Назад</button>
+    <div id="fixed-tabs" style="display:flex;overflow-x:auto;gap:.1rem;flex:1;"></div>
   </div>
-  <!-- Великі кнопки меню -->
-  <div id="fixed-menu-cards" style="max-width:780px;margin:0 auto;padding:1.5rem 1rem 0;">
-    <div id="menu-cards-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.85rem;"></div>
+  <div id="fixed-menu-cards" style="max-width:780px;margin:0 auto;padding:1.25rem 1rem 0;">
+    <div id="menu-cards-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.75rem;"></div>
   </div>
-  <!-- Вкладки (маленькі, показуються після вибору) -->
-  <div id="fixed-tabs" style="background:#fff;border-bottom:2px solid var(--bd);display:flex;overflow-x:auto;padding:0 1rem;gap:.1rem;position:sticky;top:54px;z-index:100;display:none;"></div>
   <div id="fixed-tab-content"></div>
 </div>
+
 <!-- ШТАТНИЙ РОЗПИС -->
 <div id="p-shtat" class="page">
   <div style="background:linear-gradient(135deg,#0e1a2b,#1a3a1a);color:#fff;padding:2.5rem 2rem 2rem;text-align:center;">
@@ -211,6 +226,7 @@ footer{background:var(--ink);color:rgba(255,255,255,.4);text-align:center;paddin
     <p id="shtat-subtitle" style="color:rgba(255,255,255,.7);font-size:.9rem;">—</p>
   </div>
   <div class="wrap">
+    <div style="padding:.6rem 0 .5rem;"><button onclick="goPage(&#39;p-menu&#39;,null)" style="background:none;border:1px solid var(--bd);color:var(--mu);padding:.3rem .8rem;border-radius:20px;font-size:.78rem;cursor:pointer;font-family:&#39;Manrope&#39;,sans-serif;">← Назад</button></div>
     <div class="btn-row" style="margin-bottom:1.25rem;">
       <button class="btn btn-pdf" onclick="exportShtatPDF()">🖨️ Друкувати PDF</button>
       <button class="btn btn-excel" onclick="exportShtatExcel()">📊 Завантажити Excel</button>
@@ -227,6 +243,7 @@ footer{background:var(--ink);color:rgba(255,255,255,.4);text-align:center;paddin
     <p style="color:rgba(255,255,255,.7);font-size:.9rem;" id="tabel-subtitle">—</p>
   </div>
   <div class="wrap">
+    <div style="padding:.6rem 1rem 0;max-width:780px;margin:0 auto;"><button onclick="goPage('p-menu',null)" style="background:none;border:1px solid var(--bd);color:var(--mu);padding:.35rem .85rem;border-radius:20px;font-size:.78rem;cursor:pointer;font-family:'Manrope',sans-serif;">← Меню закладу</button></div>
     <!-- Вибір типу і місяця -->
     <div class="meta-card" style="margin-bottom:1.25rem;">
       <div class="meta-title">⚙️ Параметри табелю</div>
@@ -327,6 +344,11 @@ footer{background:var(--ink);color:rgba(255,255,255,.4);text-align:center;paddin
 .inst-btn{padding:1rem;border:2px solid var(--bd);border-radius:12px;background:var(--bg);cursor:pointer;text-align:center;transition:all .2s;font-family:'Manrope',sans-serif;}
 .inst-btn:hover{border-color:var(--ac);background:var(--soft);transform:translateY(-1px);}
 .inst-btn.sel{border-color:var(--ac);background:var(--soft);box-shadow:0 0 0 3px rgba(29,111,164,.15);}
+.menu-section{padding:1.4rem 1rem;border:2px solid var(--bd);border-radius:14px;background:#fff;cursor:pointer;text-align:center;transition:all .2s;font-family:'Manrope',sans-serif;box-shadow:0 2px 8px rgba(14,26,43,.05);}
+.menu-section:hover{border-color:var(--ac);transform:translateY(-2px);box-shadow:0 6px 20px rgba(29,111,164,.15);}
+.menu-section .ms-icon{font-size:2.2rem;margin-bottom:.6rem;}
+.menu-section .ms-label{font-weight:700;font-size:.92rem;color:var(--dk);}
+.menu-section .ms-hint{font-size:.72rem;color:var(--mu);margin-top:.2rem;}
 .menu-card{padding:1.1rem .75rem;border:2px solid var(--bd);border-radius:12px;background:var(--bg);cursor:pointer;text-align:center;transition:all .2s;font-family:'Manrope',sans-serif;}
 .menu-card:hover{border-color:var(--ac);background:var(--soft);transform:translateY(-2px);box-shadow:0 4px 16px rgba(29,111,164,.12);}
 .menu-card.active{border-color:var(--ac);background:var(--soft);box-shadow:0 0 0 3px rgba(29,111,164,.15);}
@@ -1247,6 +1269,8 @@ var INST_TABS={
      positions:['Директор','Заступник директора з НВР','Заступник директора з АГЧ','Заступник директора з виховної роботи']},
     {id:'pedpers',label:'🧠 Пед. персонал',razrMin:11,razrMax:15,okladType:'ped',
      positions:['Практичний психолог','Соціальний педагог','Логопед','Дефектолог','Педагог-організатор','Вчитель-логопед','Асистент вчителя']},
+    {id:'spetsialisty',label:'📑 Спеціалісти',razrMin:9,razrMax:15,okladType:'rob',
+     positions:['Бухгалтер','Головний бухгалтер','Діловод','Секретар','Інспектор з кадрів','Юрисконсульт','Економіст','Системний адміністратор']},
     {id:'bibliotekar',label:'📖 Бібліотека',razrMin:8,razrMax:12,okladType:'bib',
      positions:['Бібліотекар','Бібліотекар (старший)','Завідувач бібліотекою']},
     {id:'med',label:'🏥 Медпрацівники',razrMin:7,razrMax:14,okladType:'med',
@@ -1303,47 +1327,102 @@ var FIXED_TABS=[];
 var fixedTabsBuilt=false;
 var fcCounts={};
 
+function buildMenuCards(){
+  var grid=document.getElementById('menu-cards-grid');
+  if(!grid)return;
+  grid.innerHTML='';
+  var tabIcons={teachers:'📚',kerivnyky:'👔',pedpers:'🧠',pedpersonaL:'🧠',
+    spetsialisty:'📑',bibliotekar:'📖',med:'🏥',rob:'🔧'};
+  var tabLabels={teachers:'Вчителі',kerivnyky:'Керівники',pedpers:'Пед. персонал',
+    pedpersonaL:'Пед. персонал',spetsialisty:'Спеціалісти',
+    bibliotekar:'Бібліотека',med:'Медпрацівники',rob:'Обслуг. персонал'};
+  FIXED_TABS.forEach(function(tab){
+    var card=document.createElement('div');
+    card.className='menu-card';
+    card.id='mcard-'+tab.id;
+    card.innerHTML='<div style="font-size:2rem;margin-bottom:.5rem;">'+(tabIcons[tab.id]||'📋')+'</div>'
+      +'<div style="font-weight:700;font-size:.85rem;color:var(--dk);">'+(tabLabels[tab.id]||tab.label)+'</div>';
+    (function(tab,card){
+      card.onclick=function(){switchTab(tab.id);};
+    })(tab,card);
+    grid.appendChild(card);
+  });
+}
+
+function switchTab(tabId){
+  // Картки
+  document.querySelectorAll('.menu-card').forEach(function(el){el.classList.remove('active');});
+  var mc=document.getElementById('mcard-'+tabId);
+  if(mc)mc.classList.add('active');
+  // Вкладки бару
+  var bar=document.getElementById('fixed-tabs');
+  if(bar){
+    bar.style.display='flex';
+    bar.querySelectorAll('.ftab-btn').forEach(function(b){b.classList.remove('active');});
+    var btn=document.getElementById('ftab-btn-'+tabId);
+    if(btn)btn.classList.add('active');
+  }
+  // Контент — тільки всередині fixed-tab-content
+  var cont=document.getElementById('fixed-tab-content');
+  if(cont){
+    cont.querySelectorAll('.ftab-content').forEach(function(t){t.classList.remove('active');});
+    var tab=document.getElementById('ftab-'+tabId);
+    if(tab){
+      tab.classList.add('active');
+      // Прокрутити
+      var menuCards=document.getElementById('fixed-menu-cards');
+      if(menuCards)menuCards.scrollIntoView({behavior:'smooth',block:'start'});
+    }
+  }
+}
+
 function buildFixedTabs(){
   if(fixedTabsBuilt)return;
   fixedTabsBuilt=true;
   var bar=document.getElementById('fixed-tabs');
   var cont=document.getElementById('fixed-tab-content');
   if(!bar||!cont)return;
-  // Очистити попередній вміст перед перебудовою
-  bar.innerHTML='';
-  cont.innerHTML='';
+  bar.innerHTML='';cont.innerHTML='';
+
+  // Спочатку побудувати всі вкладки
   FIXED_TABS.forEach(function(tab,i){
+    // Кнопка у барі
     var btn=document.createElement('button');
-    btn.className='ftab-btn'+(i===0?' active':'');
+    btn.className='ftab-btn';
+    btn.id='ftab-btn-'+tab.id;
     btn.textContent=tab.label;
-    (function(tab,btn){
-      btn.onclick=function(){
-        bar.querySelectorAll('.ftab-btn').forEach(function(b){b.classList.remove('active');});
-        cont.querySelectorAll('.ftab-content').forEach(function(t){t.classList.remove('active');});
-        btn.classList.add('active');
-        document.getElementById('ftab-'+tab.id).classList.add('active');
-      };
-    })(tab,btn);
+    (function(tab){btn.onclick=function(){switchTab(tab.id);};})(tab);
     bar.appendChild(btn);
+    // Контент вкладки
     var div=document.createElement('div');
-    div.className='ftab-content'+(i===0?' active':'');
+    div.className='ftab-content';
     div.id='ftab-'+tab.id;
     if(tab.id==='teachers'){
       div.innerHTML=buildTeacherTabHTML();
-      cont.appendChild(div);
-      if(!document.getElementById('teachers-list-tab')||!document.getElementById('teachers-list-tab').children.length){
-        addTeacher();
-      }
     } else {
       div.innerHTML=buildFTabHTML(tab);
-      cont.appendChild(div);
+    }
+    cont.appendChild(div);
+  });
+
+  // Ініціалізувати контент вкладок
+  FIXED_TABS.forEach(function(tab){
+    if(tab.id==='teachers'){
+      var tlist=document.getElementById('teachers-list-tab');
+      if(tlist&&!tlist.children.length)addTeacher();
+    } else {
       addFC(tab.id);
     }
   });
-  // Активувати першу кнопку меню
-  var firstCard=document.querySelector('.menu-card');
-  if(firstCard)firstCard.classList.add('active');
+
+  // Побудувати картки
+  buildMenuCards();
+  bar.style.display='flex';
+
+  // Активувати першу вкладку
+  if(FIXED_TABS.length>0)switchTab(FIXED_TABS[0].id);
 }
+
 
 function buildTeacherTabHTML(){
   return '<div class="wrap">'
@@ -1355,14 +1434,7 @@ function buildTeacherTabHTML(){
     +'<button class="btn btn-prim" onclick="saveData()">💾 Зберегти</button>'
     +'<button class="btn btn-pdf" onclick="exportPDF()">🖨️ PDF тарифікація</button>'
     +'<button class="btn btn-excel" onclick="exportExcel()">📊 Excel</button>'
-    +'<button class="btn btn-purple" id="btn-t-zarp">🧮 Розрахунок зарплати</button>'
     +'</div></div>';
-}
-
-// Додати обробник після рендеру
-function initTeacherTab(){
-  var btn=document.getElementById('btn-t-zarp');
-  if(btn&&!btn._init){btn._init=true;btn.onclick=function(){showTeacherZarp();};}
 }
 
 function buildFTabHTML(tab){
@@ -1423,7 +1495,8 @@ function addFC(tabId){
     +'<div class="fg3">'
     +'<div class="field"><label>Прізвище</label><input type="text" class="fc-last" placeholder="'+UA_NAMES[Math.floor(Math.random()*UA_NAMES.length)].split(' ')[0]+'" oninput="calcFC(this.closest(\'.fc\'))"></div>'
     +'<div class="field"><label>Ім\'я та по батькові</label><input type="text" class="fc-first" placeholder=""></div>'
-    +'<div class="field"><label>Посада</label><select class="fc-pos" onchange="calcFC(this.closest(\'.fc\'))">'+posOpts+'</select></div>'
+    +'<div class="field"><label>Посада</label><select class="fc-pos" >'+posOpts+'</select></div>'
+    +'<div class="field fc-custom-pos-wrap" style="display:none;"><label>Введіть назву посади</label><input type="text" class="fc-custom-pos" placeholder="Введіть посаду" oninput="calcFC(this.closest(&#39;.fc&#39;))"></div>'
     +'<div class="field"><label>К-сть ставок</label><input type="number" class="fc-stavky" value="1" min="0.25" max="5" step="0.25" oninput="calcFC(this.closest(\'.fc\'))"></div>'
     +'<div class="field"><label>Тарифний розряд</label>'+mkRazrSel('fc-razr',type,tab.razrMin,tab.razrMax,defRazr)+'</div>'
     +'<div class="field"><label>Посадовий оклад (авто)</label><input type="text" class="fc-oklad ro" readonly></div>'
@@ -1505,6 +1578,12 @@ function addFC(tabId){
   d.className='fc';d.id='fc-'+id;
   d.innerHTML=html;
   grid.appendChild(d);
+  var posEl=d.querySelector('.fc-pos');
+  var wrapEl=d.querySelector('.fc-custom-pos-wrap');
+  if(posEl)posEl.onchange=function(){
+    if(wrapEl)wrapEl.style.display=posEl.value==='Інша посада'?'':'none';
+    calcFC(d);
+  };
   calcFC(d);
 }
 
@@ -1520,6 +1599,13 @@ function autoFCStazh(inp){
   calcFC(sec);
 }
 
+function onFCPosChange(sel){
+  var sec=sel.closest('.fc');
+  var wrap=sec?sec.querySelector('.fc-custom-pos-wrap'):null;
+  if(wrap)wrap.style.display=sel.value==='Інша посада'?'':'none';
+  if(sec)calcFC(sec);
+}
+
 function calcFC(sec){
   if(!sec)return;
   var tabEl=sec.closest('.ftab-content');
@@ -1533,7 +1619,9 @@ function calcFC(sec){
   var okladTotal=rnd(oklad1*stavky);
   sec.querySelector('.fc-oklad').value=fmt(okladTotal);
 
-  var pos=sec.querySelector('.fc-pos').value;
+  var posEl=sec.querySelector('.fc-pos');
+  var pos=posEl?posEl.value:'';
+  if(pos==='Інша посада'){var cp=sec.querySelector('.fc-custom-pos');if(cp&&cp.value.trim())pos=cp.value.trim();}
   var isDriver=pos.indexOf('Водій')>=0;
   var isAssist=pos.indexOf('Асистент')>=0;
   var isZav=pos.indexOf('Завідувач бібліотекою')>=0;
@@ -1681,28 +1769,85 @@ function selInst(type, el) {
   startWork();
 }
 
-function startWork() {
+function startWork(){
   if(!curInstType){alert('Виберіть тип закладу');return;}
-
-  // Зберегти дані закладу у глобальну змінну
-  window.instInfo = {
-    name: document.getElementById('inst-name').value || document.getElementById('inst-name').placeholder || 'Заклад освіти',
-    dir:  document.getElementById('inst-dir').value || '',
-    year: document.getElementById('inst-year').value || '2025/2026',
-    date: document.getElementById('inst-date').value || '',
-    edrpou: document.getElementById('inst-edrpou').value || '',
+  var nameEl=document.getElementById('inst-name');
+  window.instInfo={
+    type:curInstType,
+    name:(nameEl&&nameEl.value)?nameEl.value:((nameEl&&nameEl.placeholder)||'Заклад освіти'),
+    dir:(document.getElementById('inst-dir')||{}).value||'',
+    year:(document.getElementById('inst-year')||{}).value||'2025/2026',
+    date:(document.getElementById('inst-date')||{}).value||'',
+    edrpou:(document.getElementById('inst-edrpou')||{}).value||'',
   };
-
-  // Показати кнопки навігації
-  document.getElementById('nav-fixed').style.display = '';
-  document.getElementById('nav-shtat').style.display = '';
-  var navTabel=document.getElementById('nav-tabel');
-  if(navTabel)navTabel.style.display=curInstType==='school'?'':'none';
-
-  // Адаптувати вкладки під тип закладу і перейти
   adaptFixedTabs(curInstType);
-  buildFixedTabs();
-  goPage('p-fixed', document.getElementById('nav-fixed'));
+  // Очистити DOM штатних одиниць для перебудови
+  var barEl=document.getElementById('fixed-tabs');
+  var contEl=document.getElementById('fixed-tab-content');
+  var cardsEl=document.getElementById('menu-cards-grid');
+  if(barEl)barEl.innerHTML='';
+  if(contEl)contEl.innerHTML='';
+  if(cardsEl)cardsEl.innerHTML='';
+  var nm=document.getElementById('nav-menu');if(nm)nm.style.display='';
+  buildMenuPage();
+  goPage('p-menu',null);
+}
+
+var INST_NAMES={
+  school:'🏫 Школа',dnz:'🌱 ДНЗ / Садочок',dyush:'⚽ ДЮСШ',
+  center:'🎨 Центр творчості',irc:'♿ ІРЦ',viddil:'🏛 Відділ освіти',
+};
+
+function buildMenuPage(){
+  var badge=document.getElementById('menu-inst-badge');
+  if(badge)badge.textContent=INST_NAMES[curInstType]||curInstType;
+  var nameEl=document.getElementById('menu-inst-name');
+  if(nameEl)nameEl.textContent=window.instInfo.name;
+  var yearEl=document.getElementById('menu-inst-year');
+  if(yearEl)yearEl.textContent=window.instInfo.year;
+  var grid=document.getElementById('menu-sections-grid');
+  if(!grid)return;
+  grid.innerHTML='';
+  var sections=[
+    {id:'zarplata', icon:'💰', label:'Розрахунок зарплати', hint:'Платіжна відомість'},
+    {id:'tarif',    icon:'📋', label:'Тарифікація',         hint:'Заповнення даних персоналу'},
+    {id:'shtodni',  icon:'🗂️', label:'Штатні одиниці',     hint:'Перегляд штатного розпису'},
+    {id:'shtat',    icon:'📊', label:'Штатний розпис',      hint:'PDF · Excel'},
+  ];
+  if(curInstType==='school')sections.push({id:'tabel',icon:'📅',label:'Табель',hint:'Облік робочого часу'});
+  sections.push({id:'contacts',icon:'📬',label:'Контакти',hint:'Інформація'});
+  sections.forEach(function(sec){
+    var card=document.createElement('div');
+    card.className='menu-section';
+    card.innerHTML='<div class="ms-icon">'+sec.icon+'</div>'
+      +'<div class="ms-label">'+sec.label+'</div>'
+      +'<div class="ms-hint">'+sec.hint+'</div>';
+    (function(sec){card.onclick=function(){openSection(sec.id);};})(sec);
+    grid.appendChild(card);
+  });
+}
+
+function openSection(secId){
+  if(secId==='zarplata'){
+    alert('Розділ буде доступний незабаром');
+  } else if(secId==='tarif'||secId==='shtodni'){
+    // Завжди перебудовувати щоб мати актуальні дані
+    var barEl=document.getElementById('fixed-tabs');
+    var contEl=document.getElementById('fixed-tab-content');
+    var cardsEl=document.getElementById('menu-cards-grid');
+    if(barEl)barEl.innerHTML='';
+    if(contEl)contEl.innerHTML='';
+    if(cardsEl)cardsEl.innerHTML='';
+    fixedTabsBuilt=false;
+    buildFixedTabs();
+    goPage('p-fixed',null);
+  } else if(secId==='shtat'){
+    buildShtat();goPage('p-shtat',null);
+  } else if(secId==='tabel'){
+    buildTabel();goPage('p-tabel',null);
+  } else if(secId==='contacts'){
+    goPage('p3',null);
+  }
 }
 
 
@@ -2444,6 +2589,51 @@ function getTabelPeople(type){
   return people;
 }
 
+
+function openInstNameEdit(){
+  var old=document.getElementById('inst-edit-modal');if(old)old.remove();
+  var info=window.instInfo||{};
+  var html='<div id="inst-edit-modal" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;display:flex;align-items:center;justify-content:center;padding:1rem;">'
+    +'<div style="background:#fff;border-radius:14px;padding:1.5rem;max-width:460px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.3);">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem;">'
+    +'<div style="font-family:Unbounded,sans-serif;font-size:.9rem;font-weight:700;color:#0e1a2b;">📋 Дані закладу</div>'
+    +'<button id="iem-close" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888;">✕</button>'
+    +'</div>'
+    +'<div style="display:flex;flex-direction:column;gap:.6rem;">'
+    +'<div><label style="font-size:.72rem;color:#888;display:block;margin-bottom:.2rem;">Назва закладу</label>'
+    +'<input id="iem-name" type="text" value="'+(info.name||'')+'" placeholder="Ліцей № 1 м. Богуслав" style="width:100%;padding:.45rem .6rem;border:1.5px solid #c8d4e0;border-radius:7px;font-size:.88rem;"></div>'
+    +'<div><label style="font-size:.72rem;color:#888;display:block;margin-bottom:.2rem;">Керівник (ПІБ)</label>'
+    +'<input id="iem-dir" type="text" value="'+(info.dir||'')+'" placeholder="Іваненко І.І." style="width:100%;padding:.45rem .6rem;border:1.5px solid #c8d4e0;border-radius:7px;font-size:.88rem;"></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">'
+    +'<div><label style="font-size:.72rem;color:#888;display:block;margin-bottom:.2rem;">Навчальний рік</label>'
+    +'<select id="iem-year" style="width:100%;padding:.45rem .4rem;border:1.5px solid #c8d4e0;border-radius:7px;font-size:.85rem;"><option>2025/2026</option><option>2026/2027</option></select></div>'
+    +'<div><label style="font-size:.72rem;color:#888;display:block;margin-bottom:.2rem;">ЄДРПОУ</label>'
+    +'<input id="iem-edrpou" type="text" value="'+(info.edrpou||'')+'" placeholder="12345678" style="width:100%;padding:.45rem .6rem;border:1.5px solid #c8d4e0;border-radius:7px;font-size:.88rem;"></div>'
+    +'</div>'
+    +'<div><label style="font-size:.72rem;color:#888;display:block;margin-bottom:.2rem;">Дата тарифікації</label>'
+    +'<input id="iem-date" type="date" value="'+(info.date||'')+'" style="width:100%;padding:.45rem .6rem;border:1.5px solid #c8d4e0;border-radius:7px;font-size:.88rem;"></div>'
+    +'</div>'
+    +'<button id="iem-save" style="width:100%;background:#1d6fa4;color:#fff;border:none;border-radius:8px;padding:.65rem;font-size:.9rem;font-weight:700;cursor:pointer;margin-top:1rem;">Зберегти</button>'
+    +'</div></div>';
+  document.body.insertAdjacentHTML('beforeend',html);
+  var modal=document.getElementById('inst-edit-modal');
+  document.getElementById('iem-close').onclick=function(){modal.remove();};
+  var yearSel=document.getElementById('iem-year');
+  if(info.year)yearSel.value=info.year;
+  document.getElementById('iem-save').onclick=function(){
+    window.instInfo.name=document.getElementById('iem-name').value||window.instInfo.name;
+    window.instInfo.dir=document.getElementById('iem-dir').value;
+    window.instInfo.year=yearSel.value;
+    window.instInfo.edrpou=document.getElementById('iem-edrpou').value;
+    window.instInfo.date=document.getElementById('iem-date').value;
+    modal.remove();
+    // Оновити відображення
+    var nameEl=document.getElementById('menu-inst-name');
+    if(nameEl)nameEl.textContent=window.instInfo.name;
+    var yearEl=document.getElementById('menu-inst-year');
+    if(yearEl)yearEl.textContent=window.instInfo.year;
+  };
+}
 </script>
 </body>
 </html>
