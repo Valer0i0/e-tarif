@@ -458,15 +458,41 @@ function tog(btn,blockCls,chkCls){
 // CALC
 // ============================================================
 function calcTotal(sec){
+  const posEl=sec.querySelector('.t-pos');
+  const pos=posEl?posEl.value:'Вчитель';
+  const isAsis=pos==='Асистент учителя';
+  const extraChk=sec.querySelector('.t-extra-chk');
+  const hasExtra=isAsis&&extraChk&&extraChk.checked;
+
   const razr=parseInt(sec.querySelector('.t-razr').value)||11;
   const oklad=OKL[razr]||OKL[11];
-  const okladEl=sec.querySelector('.t-oklad');
-  if(okladEl)okladEl.value=fmt(oklad);
 
-  const n14=parseFloat(sec.querySelector('.t-n14').value)||0;
-  const n59=parseFloat(sec.querySelector('.t-n59').value)||0;
+  // Ставка асистента (0.25 / 0.5 / 0.75 / 1) — впливає на ефективний посадовий оклад асистента
+  const stavkaEl=sec.querySelector('.t-asis-stavka');
+  const asisStavka=isAsis?(parseFloat(stavkaEl&&stavkaEl.value)||1):1;
+  const okladEff=isAsis?rnd(oklad*asisStavka):oklad;
+  const okladEl=sec.querySelector('.t-oklad');
+  if(okladEl)okladEl.value=fmt(okladEff);
+
+  // Розряд/оклад за додатковим навантаженням (як вчитель) — лише якщо асистент з доп. навантаженням
+  let razr2=razr,oklad2=oklad;
+  if(hasExtra){
+    razr2=parseInt(sec.querySelector('.t-razr2').value)||11;
+    oklad2=OKL[razr2]||OKL[11];
+  }
+  const oklad2El=sec.querySelector('.t-oklad2');
+  if(oklad2El)oklad2El.value=hasExtra?fmt(oklad2):'—';
+
+  // Оклад, що використовується для погодинних розрахунків (навантаження, зошити, НУШ)
+  // - звичайний вчитель/класовод/вихователь: власний оклад
+  // - асистент без доп. навантаження: годин немає взагалі
+  // - асистент з доп. навантаженням: оклад "як вчитель" (razr2)
+  const payOklad=(isAsis&&!hasExtra)?0:(isAsis?oklad2:oklad);
+
+  const n14=(isAsis&&!hasExtra)?0:(parseFloat(sec.querySelector('.t-n14').value)||0);
+  const n59=(isAsis&&!hasExtra)?0:(parseFloat(sec.querySelector('.t-n59').value)||0);
   const total_hrs=n14+n59;
-  const hr=oklad/18;
+  const hr=payOklad/18;
   const zarp14=rnd(n14*hr);
   const zarp59=rnd(n59*hr);
   const zarplata=rnd(total_hrs*hr);
@@ -474,11 +500,24 @@ function calcTotal(sec){
   const ntEl=sec.querySelector('.t-ntotal');
   if(ntEl)ntEl.value=total_hrs+' год';
 
-  // Стаж — від погодинної зарплати
+  // Стаж і престижність: для асистента без доп.навантаження — від ефективного окладу (з урах. ставки),
+  // інакше — від погодинної зарплати (як завжди)
+  const baseForStazhPrest=(isAsis&&!hasExtra)?okladEff:zarplata;
+
+  // Стаж
   const stazhPct=parseFloat(sec.querySelector('.t-spct').value)||0;
-  const stazhSum=rnd(zarplata*(stazhPct/100));
+  let stazhSum,stazhSum2=0;
+  if(isAsis&&hasExtra){
+    stazhSum=rnd(okladEff*(stazhPct/100));    // за ставку асистента
+    stazhSum2=rnd(zarplata*(stazhPct/100));   // за доп. навантаження
+  } else {
+    stazhSum=rnd(baseForStazhPrest*(stazhPct/100));
+  }
+  const stazhTotal=rnd(stazhSum+stazhSum2);
   const ssEl=sec.querySelector('.t-ssum');
   if(ssEl)ssEl.value=fmt(stazhSum);
+  const ss2El=sec.querySelector('.t-ssum2');
+  if(ss2El)ss2El.value=fmt(stazhSum2);
 
   // Зошити
   let zoshTotal=0;
@@ -489,7 +528,7 @@ function calcTotal(sec){
     if(sec.querySelector('.t-z14-chk')&&sec.querySelector('.t-z14-chk').checked){
       const h=parseFloat(sec.querySelector('.t-z14h').value)||0;
       const p=parseFloat(sec.querySelector('.t-z14p').value)||0;
-      const s=h>0?rnd(oklad*(p/100)*(h/18)):0;
+      const s=h>0?rnd(payOklad*(p/100)*(h/18)):0;
       zoshTotal+=s;
       const el=sec.querySelector('.t-z14s');if(el)el.value=fmt(s);
       if(h>0)zoshDetail.push('1-4: '+h+'год/'+p+'%');
@@ -498,7 +537,7 @@ function calcTotal(sec){
     if(sec.querySelector('.t-z59a-chk')&&sec.querySelector('.t-z59a-chk').checked){
       const h=parseFloat(sec.querySelector('.t-z59ah').value)||0;
       const p=parseFloat(sec.querySelector('.t-z59ap').value)||0;
-      const s=h>0?rnd(oklad*(p/100)*(h/18)):0;
+      const s=h>0?rnd(payOklad*(p/100)*(h/18)):0;
       zoshTotal+=s;
       const el=sec.querySelector('.t-z59as');if(el)el.value=fmt(s);
       if(h>0)zoshDetail.push('5-11р1: '+h+'год/'+p+'%');
@@ -507,7 +546,7 @@ function calcTotal(sec){
     if(sec.querySelector('.t-z59b-chk')&&sec.querySelector('.t-z59b-chk').checked){
       const h=parseFloat(sec.querySelector('.t-z59bh').value)||0;
       const p=parseFloat(sec.querySelector('.t-z59bp').value)||0;
-      const s=h>0?rnd(oklad*(p/100)*(h/18)):0;
+      const s=h>0?rnd(payOklad*(p/100)*(h/18)):0;
       zoshTotal+=s;
       const el=sec.querySelector('.t-z59bs');if(el)el.value=fmt(s);
       if(h>0)zoshDetail.push('5-11р2: '+h+'год/'+p+'%');
@@ -516,15 +555,15 @@ function calcTotal(sec){
     if(sec.querySelector('.t-np-chk')&&sec.querySelector('.t-np-chk').checked){
       const h14=parseFloat(sec.querySelector('.t-np14h').value)||0;
       const p14=parseFloat(sec.querySelector('.t-np14p').value)||0;
-      if(h14>0){const s=rnd(oklad*(p14/100/2)*(h14/18));zoshTotal+=s;zoshDetail.push('нп1-4: '+h14+'год/'+p14+'%÷2');}
+      if(h14>0){const s=rnd(payOklad*(p14/100/2)*(h14/18));zoshTotal+=s;zoshDetail.push('нп1-4: '+h14+'год/'+p14+'%÷2');}
       // Неповні 5-11 р1
       const h59a=parseFloat(sec.querySelector('.t-np59ah').value)||0;
       const p59a=parseFloat(sec.querySelector('.t-np59ap').value)||0;
-      if(h59a>0){const s=rnd(oklad*(p59a/100/2)*(h59a/18));zoshTotal+=s;zoshDetail.push('нп5-11р1: '+h59a+'год/'+p59a+'%÷2');}
+      if(h59a>0){const s=rnd(payOklad*(p59a/100/2)*(h59a/18));zoshTotal+=s;zoshDetail.push('нп5-11р1: '+h59a+'год/'+p59a+'%÷2');}
       // Неповні 5-11 р2
       const h59b=parseFloat(sec.querySelector('.t-np59bh').value)||0;
       const p59b=parseFloat(sec.querySelector('.t-np59bp').value)||0;
-      if(h59b>0){const s=rnd(oklad*(p59b/100/2)*(h59b/18));zoshTotal+=s;zoshDetail.push('нп5-11р2: '+h59b+'год/'+p59b+'%÷2');}
+      if(h59b>0){const s=rnd(payOklad*(p59b/100/2)*(h59b/18));zoshTotal+=s;zoshDetail.push('нп5-11р2: '+h59b+'год/'+p59b+'%÷2');}
     }
   }
   const ztEl=sec.querySelector('.t-zosh-total');
@@ -550,9 +589,14 @@ function calcTotal(sec){
   }
 
   // Інклюзія
+  // — звичайний вчитель: доплата пропорційно годинам в інклюзивному класі
+  // — асистент учителя: фіксована доплата 20% від посадового окладу асистента
   const iklH=parseFloat(sec.querySelector('.t-iklh').value)||0;
-  const iklSum=iklH>0?rnd(oklad/18*iklH*0.2):0;
-  const iklEl=sec.querySelector('.t-ikls');if(iklEl)iklEl.value=iklH>0?fmt(iklSum):'—';
+  const iklSumHours=iklH>0?rnd(payOklad/18*iklH*0.2):0;
+  const iklEl=sec.querySelector('.t-ikls');if(iklEl)iklEl.value=iklH>0?fmt(iklSumHours):'—';
+  const ikl2Sum=isAsis?rnd(okladEff*0.2):0;
+  const ikl2El=sec.querySelector('.t-ikl2s');if(ikl2El)ikl2El.value=isAsis?fmt(ikl2Sum):'—';
+  const iklSum=isAsis?ikl2Sum:iklSumHours;
 
   // Вихователь супроводу
   let suprovSum=0;
@@ -602,39 +646,104 @@ function calcTotal(sec){
   // Престижність
   let prestSum=0;
   const prestPct=parseFloat(sec.querySelector('.t-prestp').value)||0;
+  const nushBlk=sec.querySelector('.t-nush-blk');
   if(prestPct>0){
-    const nushPct=parseFloat(sec.querySelector('.t-nushp').value)||0;
-    const nushH=parseFloat(sec.querySelector('.t-nushh').value)||0;
-    if(prestPct<20&&nushPct>0&&nushH>0){
-      const restH=total_hrs-nushH;
-      const p1=restH>0?rnd(hr*restH*(prestPct/100)):0;
-      const p2=rnd(hr*nushH*(nushPct/100));
-      prestSum=rnd(p1+p2);
+    if(isAsis&&!hasExtra){
+      // Асистент без доп. навантаження — престижність від ефективного окладу (з урах. ставки)
+      prestSum=rnd(baseForStazhPrest*(prestPct/100));
+      if(nushBlk)nushBlk.classList.remove('show');
+    } else if(isAsis&&hasExtra){
+      // Асистент з доп. навантаженням — престижність за доп. навантаження (як вчитель)
+      // + престижність за ставку асистента (від ефективного окладу)
+      const nushPct=parseFloat(sec.querySelector('.t-nushp').value)||0;
+      const nushH=parseFloat(sec.querySelector('.t-nushh').value)||0;
+      let prestExtra;
+      if(prestPct<20&&nushPct>0&&nushH>0){
+        const restH=total_hrs-nushH;
+        const p1=restH>0?rnd(hr*restH*(prestPct/100)):0;
+        const p2=rnd(hr*nushH*(nushPct/100));
+        prestExtra=rnd(p1+p2);
+      } else {
+        prestExtra=rnd(zarplata*(prestPct/100));
+      }
+      const prestAsis=rnd(okladEff*(prestPct/100));
+      prestSum=rnd(prestExtra+prestAsis);
+      if(nushBlk)nushBlk.classList.toggle('show',prestPct<20);
     } else {
-      prestSum=rnd(zarplata*(prestPct/100));
+      const nushPct=parseFloat(sec.querySelector('.t-nushp').value)||0;
+      const nushH=parseFloat(sec.querySelector('.t-nushh').value)||0;
+      if(prestPct<20&&nushPct>0&&nushH>0){
+        const restH=total_hrs-nushH;
+        const p1=restH>0?rnd(hr*restH*(prestPct/100)):0;
+        const p2=rnd(hr*nushH*(nushPct/100));
+        prestSum=rnd(p1+p2);
+      } else {
+        prestSum=rnd(zarplata*(prestPct/100));
+      }
+      if(nushBlk)nushBlk.classList.toggle('show',prestPct<20);
     }
-    const nushBlk=sec.querySelector('.t-nush-blk');
-    if(nushBlk)nushBlk.classList.toggle('show',prestPct<20);
+  } else if(nushBlk){
+    nushBlk.classList.remove('show');
   }
   const prestEl=sec.querySelector('.t-prests');if(prestEl)prestEl.value=prestSum>0?fmt(prestSum):'—';
 
+  // Додаткове навантаження лише для спецнадбавки (ставка 0,125–1/власна, або год. індив. навчання)
+  // — для всіх посад, оплата за нього не нараховується окремо
+  let sklExtraHrsEquiv=0;
+  const sklExtraChk=sec.querySelector('.t-skl-extra-chk');
+  if(sklExtraChk&&sklExtraChk.checked){
+    const stavkaSel=sec.querySelector('.t-skl-stavka');
+    const stavkaVal=stavkaSel?stavkaSel.value:'0';
+    const stavkaNum=(stavkaVal==='custom')
+      ?(parseFloat(sec.querySelector('.t-skl-custom').value)||0)
+      :(parseFloat(stavkaVal)||0);
+    const indH=parseFloat(sec.querySelector('.t-skl-indh').value)||0;
+    sklExtraHrsEquiv=rnd(stavkaNum*18)+indH;
+  }
+
   // Спеціальна надбавка
+  // Якщо сумарне навантаження (ставка асистента, переведена у години, + доп. навантаження
+  // + додаткове навантаження для спецнадбавки) менше за 1 ставку (18 год) — фіксовано 2600 грн,
+  // незалежно від навантаження. Якщо більше — пропорційно сумарному навантаженню (2600/18 × год).
   let skladni=0;
-  if(total_hrs>0&&(typeof curInstType==='undefined'||curInstType==='school')) skladni=rnd(total_hrs<18?2600:2600/18*total_hrs);
+  if(typeof curInstType==='undefined'||curInstType==='school'){
+    if(isAsis){
+      const asisHrsEquiv=rnd(asisStavka*18);
+      const combinedHrs=asisHrsEquiv+(hasExtra?total_hrs:0)+sklExtraHrsEquiv;
+      skladni=combinedHrs<18?2600:rnd(2600/18*combinedHrs);
+    } else {
+      const combinedHrs=total_hrs+sklExtraHrsEquiv;
+      if(combinedHrs>0) skladni=combinedHrs<18?2600:rnd(2600/18*combinedHrs);
+    }
+  }
   const skEl=sec.querySelector('.t-sklval');if(skEl)skEl.textContent=skladni>0?fmt(skladni):'—';
 
-  const total=rnd(zarplata+stazhSum+zoshTotal+klasSum+gurtkiSum+iklSum+suprovSum+gpdSum+kabSum+metSum+siteSum+inshiSum+prestSum+skladni);
+  // Базова складова зарплати:
+  // — звичайний вчитель: погодинна зарплата (zarplata)
+  // — асистент без доп.навантаження: ефективний посадовий оклад асистента (з урах. ставки)
+  // — асистент з доп.навантаженням: ефективний оклад асистента (11-12, з урах. ставки) + погодинна оплата за доп.навантаження
+  let baseSalary;
+  if(isAsis&&!hasExtra) baseSalary=okladEff;
+  else if(isAsis&&hasExtra) baseSalary=okladEff+zarplata;
+  else baseSalary=zarplata;
+
+  const total=rnd(baseSalary+stazhTotal+zoshTotal+klasSum+gurtkiSum+iklSum+suprovSum+gpdSum+kabSum+metSum+siteSum+inshiSum+prestSum+skladni);
+
 
   // Оновити підсуми
   const badge=sec.querySelector('.tc-badge');if(badge)badge.textContent=fmt(total);
   const info=sec.querySelector('.tc-info');
-  if(info){const nm=sec.querySelector('.t-last').value||'Новий';info.textContent=nm+' · '+total_hrs+' год · '+razr+' розряд';}
+  if(info){
+    const nm=sec.querySelector('.t-last').value||'Новий';
+    const razrInfo=hasExtra?(razr+'/'+razr2+' розряд'):(razr+' розряд');
+    info.textContent=nm+' · '+total_hrs+' год · '+razrInfo;
+  }
   const tv=sec.querySelector('.t-total-val');if(tv)tv.textContent=fmt(total);
-  const sv=sec.querySelector('.sub-stazh');if(sv)sv.textContent=fv(stazhSum);
+  const sv=sec.querySelector('.sub-stazh');if(sv)sv.textContent=fv(stazhTotal);
   const zv=sec.querySelector('.sub-zosh');if(zv)zv.textContent=fv(zoshTotal);
   const kv=sec.querySelector('.sub-klas');if(kv)kv.textContent=fv(klasSum);
 
-  return {oklad,n14,n59,total_hrs,zarp14,zarp59,zarplata,stazhPct,stazhSum,
+  return {oklad,okladEff,asisStavka,oklad2,n14,n59,total_hrs,zarp14,zarp59,zarplata,stazhPct,stazhSum,stazhSum2,stazhTotal,
     zoshTotal,zoshDetail:zoshDetail.join('; '),klasSum,gurtkiSum,iklSum,
     suprovSum,gpdSum,kabSum,metSum,siteSum,inshiSum,prestSum,skladni,total};
 }
@@ -684,14 +793,13 @@ function addTeacher(){
     <div class="field"><label>Прізвище</label><input type="text" class="t-last" id="ph-last-tpl" placeholder="Шевченко" oninput="calcTotal(this.closest('.tc'))"></div>
     <div class="field"><label>Ім'я та по батькові</label><input type="text" class="t-first" placeholder=""></div>
     <div class="field"><label>Посада</label>
-      <select class="t-pos">
+      <select class="t-pos" onchange="onTPosChange(this)">
         <option>Вчитель</option><option>Асистент учителя</option><option>Класовод</option>
-        <option>Вчитель іноземної мови</option><option>Заступник директора</option>
-        <option>Вихователь</option><option>Психолог</option><option>Соціальний педагог</option>
+        <option>Вихователь</option>
       </select>
     </div>
-    <div class="field"><label>Предмет</label><input type="text" class="t-subj" placeholder="Математика"></div>
-    <div class="field"><label>Кваліфікаційна категорія</label>
+    <div class="field t-fld-subj"><label>Предмет</label><input type="text" class="t-subj" placeholder="Математика"></div>
+    <div class="field t-fld-cat"><label>Кваліфікаційна категорія</label>
       <select class="t-cat" onchange="autoRazr(this)">
         <option value="spec">Спеціаліст (11 р.)</option>
         <option value="spec2">Спеціаліст ІІ кат. (12 р.)</option>
@@ -699,7 +807,7 @@ function addTeacher(){
         <option value="high">Вища категорія (14 р.)</option>
       </select>
     </div>
-    <div class="field"><label>Педагогічне звання</label>
+    <div class="field t-fld-title"><label>Педагогічне звання</label>
       <select class="t-title">
         <option value="none">Немає</option><option value="star">Старший вчитель</option>
         <option value="method">Вчитель-методист</option><option value="honor">Заслужений вчитель</option>
@@ -708,9 +816,36 @@ function addTeacher(){
     <div class="field"><label>Тарифний розряд</label>
       <select class="t-razr" onchange="calcTotal(this.closest('.tc'))">${razrSel('t-razr',11)}</select>
     </div>
+    <div class="field t-fld-stavka" style="display:none;"><label>Ставка асистента</label>
+      <select class="t-asis-stavka" onchange="calcTotal(this.closest('.tc'))">
+        <option value="1" selected>1 (повна ставка)</option>
+        <option value="0.75">0,75</option>
+        <option value="0.5">0,5</option>
+        <option value="0.25">0,25</option>
+      </select>
+    </div>
     <div class="field"><label>Посадовий оклад (авто)</label><input type="text" class="t-oklad ro" readonly></div>
   </div>
 
+  <div class="t-extra-wrap" style="display:none;margin:.5rem 0 0;">
+    <button type="button" class="tog" data-on="✅ Є додаткове педагогічне навантаження" data-off="Чи є додаткове педагогічне навантаження?"
+      onclick="tog(this,'t-extra-blk','t-extra-chk');onTExtraChange(this)">Чи є додаткове педагогічне навантаження?</button>
+    <input type="checkbox" class="t-extra-chk" style="display:none;">
+    <div class="t-extra-blk hide fg3" style="margin-top:.5rem;">
+      <div class="field"><label>Категорія (доп. навантаження)</label>
+        <select class="t-cat2" onchange="autoRazr2(this)">
+          <option value="spec">Спеціаліст (11 р.)</option>
+          <option value="spec2">Спеціаліст ІІ кат. (12 р.)</option>
+          <option value="spec1">Спеціаліст І кат. (13 р.)</option>
+          <option value="high">Вища категорія (14 р.)</option>
+        </select>
+      </div>
+      <div class="field"><label>Тарифний розряд (доп. навантаження, як вчитель)</label>
+        <select class="t-razr2" onchange="calcTotal(this.closest('.tc'))">${razrSel('t-razr2',11)}</select>
+      </div>
+      <div class="field"><label>Посадовий оклад за доп. навант. (авто)</label><input type="text" class="t-oklad2 ro" readonly></div>
+    </div>
+  </div>
   <div class="tg">📅 Педагогічний стаж</div>
   <div class="fg3">
     <div class="field"><label>Стаж (років)</label><input type="number" class="t-stazh" value="10" min="0" max="50" oninput="autoStazh(this)"></div>
@@ -720,16 +855,20 @@ function addTeacher(){
         <option value="20" selected>20% (10–20 р.)</option><option value="30">30% (понад 20 р.)</option>
       </select>
     </div>
-    <div class="field"><label>Сума за стаж (авто)</label><input type="text" class="t-ssum ro-ok" readonly></div>
+    <div class="field"><label class="t-ssum-label">Сума за стаж (авто)</label><input type="text" class="t-ssum ro-ok" readonly></div>
+    <div class="field t-fld-ssum2" style="display:none;"><label>Сума за стаж — доп. навантаження (авто)</label><input type="text" class="t-ssum2 ro-ok" readonly></div>
   </div>
 
+  <div class="t-sec-navant">
   <div class="tg">⏱️ Педагогічне навантаження</div>
   <div class="fg3">
     <div class="field"><label>Год. 1–4 кл. (тиж.)</label><input type="number" class="t-n14" value="0" min="0" max="36" oninput="calcTotal(this.closest('.tc'))"></div>
     <div class="field"><label>Год. 5–11(12) кл. (тиж.)</label><input type="number" class="t-n59" value="18" min="0" max="36" oninput="calcTotal(this.closest('.tc'))"></div>
     <div class="field"><label>Разом год/тиж (авто)</label><input type="text" class="t-ntotal ro" readonly></div>
   </div>
+  </div>
 
+  <div class="t-sec-zoshyty">
   <div class="tg">📓 Перевірка зошитів</div>
   <button type="button" class="tog-sec" data-on="✅ Оплата за зошити — увімкнено" data-off="📓 Оплата за зошити (натисніть, щоб увімкнути)"
     onclick="tog(this,'t-zosh-blk','t-zosh-chk')">📓 Оплата за зошити (натисніть, щоб увімкнути)</button>
@@ -807,6 +946,7 @@ function addTeacher(){
       <div class="field"><label>РАЗОМ за зошити (авто)</label><input type="text" class="t-zosh-total ro-ok" readonly></div>
     </div>
   </div>
+  </div>
 
   <div class="tg">🏫 Класне керівництво</div>
   <button type="button" class="tog-sec" data-on="✅ Класне керівництво — увімкнено" data-off="🏫 Класне керівництво (натисніть, щоб увімкнути)"
@@ -843,10 +983,19 @@ function addTeacher(){
     <div class="field"><label>Сума гуртки (авто)</label><input type="text" class="t-gs ro-ok" readonly></div>
   </div>
 
+  <div class="t-sec-ikl-old">
   <div class="tg">♿ Інклюзивне навчання</div>
   <div class="fg3">
     <div class="field"><label>Год. в інклюзивному класі</label><input type="number" class="t-iklh" value="0" min="0" oninput="calcTotal(this.closest('.tc'))"></div>
     <div class="field"><label>Доплата 20% від окладу (авто)</label><input type="text" class="t-ikls ro-ok" readonly></div>
+  </div>
+  </div>
+
+  <div class="t-sec-ikl-new" style="display:none;">
+  <div class="tg">♿ Доплата за інклюзію</div>
+  <div class="fg3">
+    <div class="field"><label>Доплата за інклюзію — 20% від посадового окладу (авто)</label><input type="text" class="t-ikl2s ro-ok" readonly></div>
+  </div>
   </div>
 
   <div class="tg">👩‍🏫 Вихователь з супроводу</div>
@@ -902,6 +1051,30 @@ function addTeacher(){
   </div>
 
   <div class="tg gold">⭐ СПЕЦІАЛЬНА НАДБАВКА ЗА РОБОТУ В СКЛАДНИХ УМОВАХ</div>
+  <button type="button" class="tog" data-on="✅ Є додаткове навантаження для спецнадбавки" data-off="Чи є додаткове педагогічне навантаження (для спецнадбавки)?"
+    onclick="tog(this,'t-skl-extra-blk','t-skl-extra-chk')">Чи є додаткове педагогічне навантаження (для спецнадбавки)?</button>
+  <input type="checkbox" class="t-skl-extra-chk" style="display:none;">
+  <div class="t-skl-extra-blk hide fg3" style="margin:.5rem 0;">
+    <div class="field"><label>Додаткове навантаження (ставка)</label>
+      <select class="t-skl-stavka" onchange="onSklStavkaChange(this)">
+        <option value="0" selected>—</option>
+        <option value="0.125">0,125 ст.</option>
+        <option value="0.2">0,2 ст.</option>
+        <option value="0.25">0,25 ст.</option>
+        <option value="0.5">0,5 ст.</option>
+        <option value="0.75">0,75 ст.</option>
+        <option value="1">1 ст.</option>
+        <option value="custom">Інше (ввести)</option>
+      </select>
+    </div>
+    <div class="field t-skl-custom-wrap" style="display:none;"><label>Власна ставка (напр. 0,4)</label>
+      <input type="number" class="t-skl-custom" value="0" min="0" max="2" step="0.05" oninput="calcTotal(this.closest('.tc'))">
+    </div>
+    <div class="field"><label>Год. індивідуального навчання (тиж.)</label>
+      <input type="number" class="t-skl-indh" value="0" min="0" max="36" oninput="calcTotal(this.closest('.tc'))">
+    </div>
+    <div class="hint" style="grid-column:1/-1;">Враховується лише для розрахунку спецнадбавки за складні умови (окрема оплата за це навантаження не нараховується).</div>
+  </div>
   <div class="spec-row">
     <div>
       <div class="spec-lbl">Спеціальна надбавка за складні умови</div>
@@ -922,6 +1095,7 @@ function addTeacher(){
 </div>`;
 
   document.getElementById('teachers-list-tab').appendChild(d);
+  updateAsistentUI(d);
   calcTotal(d);
 }
 
@@ -956,6 +1130,99 @@ function autoRazr(sel){
   sel.closest('.tc').querySelector('.t-razr').value=m[sel.value]||11;
   calcTotal(sel.closest('.tc'));
 }
+
+// ── Асистент учителя: спецлогіка полів ────────────────────
+const ASIS_POS='Асистент учителя';
+function onTPosChange(sel){
+  const sec=sel.closest('.tc');
+  updateAsistentUI(sec);
+  calcTotal(sec);
+}
+function onTExtraChange(btn){
+  const sec=btn.closest('.tc');
+  updateAsistentUI(sec);
+  calcTotal(sec);
+}
+function autoRazr2(sel){
+  const m={spec:11,spec2:12,spec1:13,high:14};
+  const r2=sel.closest('.tc').querySelector('.t-razr2');
+  if(r2)r2.value=m[sel.value]||11;
+  calcTotal(sel.closest('.tc'));
+}
+function onSklStavkaChange(sel){
+  const sec=sel.closest('.tc');
+  const wrap=sec.querySelector('.t-skl-custom-wrap');
+  if(wrap)wrap.style.display=sel.value==='custom'?'':'none';
+  calcTotal(sec);
+}
+function updateAsistentUI(sec){
+  const posEl=sec.querySelector('.t-pos');
+  const isAsis=posEl&&posEl.value===ASIS_POS;
+  const extraChk=sec.querySelector('.t-extra-chk');
+
+  // Якщо посаду змінили з асистента — скинути перемикач доп. навантаження
+  if(!isAsis&&extraChk&&extraChk.checked){
+    extraChk.checked=false;
+    const extraBlk=sec.querySelector('.t-extra-blk');
+    if(extraBlk)extraBlk.classList.remove('show');
+    const extraBtn=sec.querySelector('.t-extra-wrap .tog');
+    if(extraBtn){extraBtn.classList.remove('on');extraBtn.textContent=extraBtn.dataset.off;}
+  }
+  const hasExtra=isAsis&&extraChk&&extraChk.checked;
+
+  // Перемикач "Чи є додаткове педагогічне навантаження?" — лише для асистента
+  const extraWrap=sec.querySelector('.t-extra-wrap');
+  if(extraWrap)extraWrap.style.display=isAsis?'':'none';
+
+  // Предмет / звання / навантаження / зошити — приховані для асистента без доп. навантаження
+  const showTeacherFields=!isAsis||hasExtra;
+  ['t-fld-subj','t-fld-title','t-sec-navant','t-sec-zoshyty'].forEach(function(cls){
+    const el=sec.querySelector('.'+cls);
+    if(el)el.style.display=showTeacherFields?'':'none';
+  });
+
+  // Кваліфікаційна категорія (звичайна) — приховується для асистента
+  // (своя категорія для доп. навантаження є в окремому блоці)
+  const catFld=sec.querySelector('.t-fld-cat');
+  if(catFld)catFld.style.display=isAsis?'none':'';
+
+  // Інклюзія: для вчителя — погодинна; для асистента — фіксована 20% від окладу
+  const iklOld=sec.querySelector('.t-sec-ikl-old');
+  if(iklOld)iklOld.style.display=isAsis?'none':'';
+  const iklNew=sec.querySelector('.t-sec-ikl-new');
+  if(iklNew)iklNew.style.display=isAsis?'':'none';
+
+  // Ставка асистента — лише для асистента (незалежно від доп.навантаження)
+  const stavkaFld=sec.querySelector('.t-fld-stavka');
+  if(stavkaFld)stavkaFld.style.display=isAsis?'':'none';
+
+  // Друга комірка стажу (за доп. навантаження) — лише асистент з доп. навантаженням
+  const ssum2Fld=sec.querySelector('.t-fld-ssum2');
+  if(ssum2Fld)ssum2Fld.style.display=hasExtra?'':'none';
+  const ssumLabel=sec.querySelector('.t-ssum-label');
+  if(ssumLabel)ssumLabel.textContent=hasExtra?'Сума за стаж — ставка асистента (авто)':'Сума за стаж (авто)';
+
+  // Тарифний розряд асистента — обмежений 11-12
+  const razrEl=sec.querySelector('.t-razr');
+  if(razrEl){
+    const cur=parseInt(razrEl.value)||11;
+    if(isAsis){
+      if(razrEl.dataset.restricted!=='1'){
+        const keep=(cur>=11&&cur<=12)?cur:11;
+        razrEl.innerHTML=[11,12].map(function(r){
+          return '<option value="'+r+'"'+(r===keep?' selected':'')+'>'+r+' розряд ('+fmt(OKL[r])+')</option>';
+        }).join('');
+        razrEl.value=String(keep);
+        razrEl.dataset.restricted='1';
+      }
+    } else if(razrEl.dataset.restricted==='1'){
+      razrEl.innerHTML=razrSel('t-razr',cur);
+      razrEl.value=String(cur);
+      delete razrEl.dataset.restricted;
+    }
+  }
+}
+
 function autoStazh(inp){
   const y=parseInt(inp.value)||0;
   const sel=inp.closest('.tc').querySelector('.t-spct');
@@ -977,6 +1244,8 @@ function getData(sec){
   return {
     last:g('.t-last'),first:g('.t-first'),pos:g('.t-pos'),subj:g('.t-subj'),
     cat:g('.t-cat'),title:g('.t-title'),razr:g('.t-razr'),
+    extraOn:gc('.t-extra-chk'),cat2:g('.t-cat2'),razr2:g('.t-razr2'),asisStavka:g('.t-asis-stavka'),
+    sklExtraOn:gc('.t-skl-extra-chk'),sklStavka:g('.t-skl-stavka'),sklCustom:g('.t-skl-custom'),sklIndh:g('.t-skl-indh'),
     stazh:g('.t-stazh'),spct:g('.t-spct'),
     n14:g('.t-n14'),n59:g('.t-n59'),
     zoshOn:gc('.t-zosh-chk'),z14On:gc('.t-z14-chk'),z59aOn:gc('.t-z59a-chk'),z59bOn:gc('.t-z59b-chk'),npOn:gc('.t-np-chk'),
@@ -1032,6 +1301,8 @@ function loadData(){
       };
       sv('.t-last',t.last);sv('.t-first',t.first);sv('.t-pos',t.pos);sv('.t-subj',t.subj);
       sv('.t-cat',t.cat);sv('.t-title',t.title);sv('.t-razr',t.razr);
+      sv('.t-cat2',t.cat2);sv('.t-razr2',t.razr2);sv('.t-asis-stavka',t.asisStavka);
+      sv('.t-skl-stavka',t.sklStavka);sv('.t-skl-custom',t.sklCustom);sv('.t-skl-indh',t.sklIndh);
       sv('.t-stazh',t.stazh);sv('.t-spct',t.spct);
       sv('.t-n14',t.n14);sv('.t-n59',t.n59);
       sv('.t-z14h',t.z14h);sv('.t-z14p',t.z14p);
@@ -1058,6 +1329,11 @@ function loadData(){
       on('.t-met-chk','.t-met-blk','.tog[data-off="ТАК"]',t.metOn);
       on('.t-site-chk','.t-site-blk','.tog[data-off="ТАК"]',t.siteOn);
       on('.t-inshi-chk','.t-inshi-blk','.tog[data-off="ТАК"]',t.inshiOn);
+      on('.t-extra-chk','.t-extra-blk','.t-extra-wrap .tog',t.extraOn);
+      on('.t-skl-extra-chk','.t-skl-extra-blk','.tog[data-off="Чи є додаткове педагогічне навантаження (для спецнадбавки)?"]',t.sklExtraOn);
+      const sklCustomWrap=sec.querySelector('.t-skl-custom-wrap');
+      if(sklCustomWrap)sklCustomWrap.style.display=(t.sklStavka==='custom')?'':'none';
+      updateAsistentUI(sec);
       calcTotal(sec);
     });
   }catch(e){console.error(e);}
@@ -1072,12 +1348,16 @@ function buildRows(){
   document.querySelectorAll('.tc').forEach((sec,i)=>{
     const t=getData(sec);
     const c=calcTotal(sec);
+    const isAsis=t.pos===ASIS_POS;
+    const hasExtra=isAsis&&!!t.extraOn;
     rows.push({
       num:i+1,pib:(t.last+' '+t.first).trim()||'—',pos:t.pos||'—',subj:t.subj||'—',
-      cat:CL[t.cat]||t.cat,razr:parseInt(t.razr)||11,oklad:c.oklad,
+      cat:CL[t.cat]||t.cat,razr:parseInt(t.razr)||11,oklad:c.okladEff,
+      isAsis,hasExtra,asisStavka:c.asisStavka,
+      razr2:hasExtra?(parseInt(t.razr2)||11):null,oklad2:hasExtra?c.oklad2:null,
       n14:c.n14,n59:c.n59,
       zarp14:c.zarp14,zarp59:c.zarp59,zarplata:c.zarplata,
-      stazhPct:c.stazhPct,stazhSum:c.stazhSum,
+      stazhPct:c.stazhPct,stazhSum:c.stazhSum,stazhSum2:c.stazhSum2,stazhTotal:c.stazhTotal,
       zoshDetail:c.zoshDetail,zosh:c.zoshTotal,
       klas:c.klasSum,gurtky:c.gurtkiSum,inkl:c.iklSum,
       suprov:c.suprovSum,gpd:c.gpdSum,
@@ -1099,7 +1379,7 @@ function exportPDF(){
   const tarDate=document.getElementById('sc-date').value||'';
   const rows=buildRows();
   const f=n=>n>0?rnd(n).toLocaleString('uk-UA',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
-  const S={n14:0,n59:0,zarp14:0,zarp59:0,zarplata:0,stazhSum:0,zosh:0,klas:0,gurtky:0,inkl:0,suprov:0,gpd:0,kab:0,met:0,site:0,inshi:0,prest:0,skladni:0,total:0};
+  const S={n14:0,n59:0,zarp14:0,zarp59:0,zarplata:0,stazhTotal:0,zosh:0,klas:0,gurtky:0,inkl:0,suprov:0,gpd:0,kab:0,met:0,site:0,inshi:0,prest:0,skladni:0,total:0};
   rows.forEach(r=>{for(const k in S)if(r[k]!==undefined)S[k]+=r[k];});
   const html=`<!DOCTYPE html><html lang="uk"><head><meta charset="UTF-8">
 <title>Тарифікація — ${school} — ${year}</title>
@@ -1148,7 +1428,7 @@ ${rows.map(r=>`<tr>
   <td>${r.cat}</td><td>${r.razr}</td><td>${f(r.oklad)}</td>
   <td>${r.n14||0}</td><td>${r.n59||0}</td>
   <td>${f(r.zarp14)}</td><td>${f(r.zarp59)}</td>
-  <td>${r.stazhPct}%</td><td>${f(r.stazhSum)}</td>
+  <td>${r.stazhPct}%</td><td>${f(r.stazhTotal)}</td>
   <td style="font-size:6.5px">${r.zoshDetail||'—'}</td><td>${f(r.zosh)}</td>
   <td>${f(r.klas)}</td><td>${f(r.gurtky)}</td><td>${f(r.inkl)}</td>
   <td>${f(r.suprov)}</td><td>${f(r.gpd)}</td>
@@ -1163,7 +1443,7 @@ ${rows.map(r=>`<tr>
   <td colspan="7" style="text-align:right;">ПІДСУМОК:</td>
   <td><strong>${S.n14}</strong></td><td><strong>${S.n59}</strong></td>
   <td><strong>${f(S.zarp14)}</strong></td><td><strong>${f(S.zarp59)}</strong></td>
-  <td></td><td><strong>${f(S.stazhSum)}</strong></td>
+  <td></td><td><strong>${f(S.stazhTotal)}</strong></td>
   <td></td><td><strong>${f(S.zosh)}</strong></td>
   <td>${f(S.klas)}</td><td>${f(S.gurtky)}</td><td>${f(S.inkl)}</td>
   <td>${f(S.suprov)}</td><td>${f(S.gpd)}</td>
@@ -1199,11 +1479,11 @@ function exportExcel(){
   const data=[H,...rows.map(r=>[
     r.num,r.pib,r.pos,r.subj,r.cat,r.razr,r.oklad,
     r.n14,r.n59,r.zarp14,r.zarp59,r.zarplata,
-    r.stazhPct,r.stazhSum,r.zoshDetail,r.zosh,
+    r.stazhPct,r.stazhTotal,r.zoshDetail,r.zosh,
     r.klas,r.gurtky,r.inkl,r.suprov,r.gpd,r.kab,r.met,r.site,r.inshi,r.prest,
     r.skladni,r.total
   ])];
-  const keys=['zarp14','zarp59','zarplata','stazhSum','zosh','klas','gurtky','inkl','suprov','gpd','kab','met','site','inshi','prest','skladni','total'];
+  const keys=['zarp14','zarp59','zarplata','stazhTotal','zosh','klas','gurtky','inkl','suprov','gpd','kab','met','site','inshi','prest','skladni','total'];
   const sumRow=new Array(H.length).fill('');sumRow[0]='ПІДСУМОК';
   sumRow[7]=rows.reduce((a,r)=>a+r.n14,0);
   sumRow[8]=rows.reduce((a,r)=>a+r.n59,0);
@@ -1223,16 +1503,21 @@ function showZarpModal(){
   const rows=buildRows();
   const f=n=>n>0?fmt(n):'—';
   const cards=rows.map(r=>{
+    const okladLabel='📌 Посадовий оклад ('+r.razr+' розряд'+(r.isAsis?', ставка '+(String(r.asisStavka).replace('.',',')):'')+')';
     const lines=[
-      ['📌 Посадовий оклад ('+r.razr+' розряд)',fmt(r.oklad),''],
+      [okladLabel,fmt(r.oklad),''],
+      ...(r.hasExtra?[['📌 Оклад за доп. навантаженням ('+r.razr2+' розряд)',fmt(r.oklad2),'']]:[]),
       ...(r.n14>0?[['⏱ Навантаження 1–4 кл. ('+r.n14+' год)',f(r.zarp14),'']]:[]),
       ...(r.n59>0?[['⏱ Навантаження 5–11(12) кл. ('+r.n59+' год)',f(r.zarp59),'']]:[]),
-      ['⏱ Зарплата за навантаження разом',fmt(r.zarplata),'font-weight:700'],
-      ...(r.stazhSum>0?[['📈 Надбавка за стаж ('+r.stazhPct+'%)',f(r.stazhSum),'']]:[]),
+      ...(r.zarplata>0?[['⏱ Зарплата за навантаження разом',fmt(r.zarplata),'font-weight:700']]:[]),
+      ...(r.hasExtra?[
+        ...(r.stazhSum>0?[['📈 Надбавка за стаж — ставка асистента ('+r.stazhPct+'%)',f(r.stazhSum),'']]:[]),
+        ...(r.stazhSum2>0?[['📈 Надбавка за стаж — доп. навантаження ('+r.stazhPct+'%)',f(r.stazhSum2),'']]:[]),
+      ]:(r.stazhSum>0?[['📈 Надбавка за стаж ('+r.stazhPct+'%)',f(r.stazhSum),'']]:[])),
       ...(r.zosh>0?[['📓 Зошити'+(r.zoshDetail?' ('+r.zoshDetail+')':''),f(r.zosh),'']]:[]),
       ...(r.klas>0?[['🏫 Класне керівництво',f(r.klas),'']]:[]),
       ...(r.gurtky>0?[['🎨 Гуртки',f(r.gurtky),'']]:[]),
-      ...(r.inkl>0?[['♿ Інклюзія',f(r.inkl),'']]:[]),
+      ...(r.inkl>0?[[r.isAsis?'♿ Доплата за інклюзію (20%)':'♿ Інклюзія',f(r.inkl),'']]:[]),
       ...(r.suprov>0?[['👩‍🏫 Вихователь супроводу',f(r.suprov),'']]:[]),
       ...(r.gpd>0?[['🏠 ГПД',f(r.gpd),'']]:[]),
       ...(r.kab>0?[['🗄 Кабінет',f(r.kab),'']]:[]),
@@ -1240,7 +1525,7 @@ function showZarpModal(){
       ...(r.site>0?[['💻 Сайт',f(r.site),'']]:[]),
       ...(r.inshi>0?[['➕ Інші доплати',f(r.inshi),'']]:[]),
       ...(r.prest>0?[['🌟 Престижність',f(r.prest),'']]:[]),
-      ['⭐ Складні умови',f(r.skladni),'font-weight:700;color:#8b6914;'],
+      ...(r.skladni>0?[['⭐ Складні умови',f(r.skladni),'font-weight:700;color:#8b6914;']]:[]),
       ['💰 РАЗОМ нараховано',fmt(r.total),'font-weight:800;font-size:1rem;color:#1d6fa4;'],
     ];
     return `<div style="background:#f5f2eb;border-radius:12px;border:1.5px solid #c8d4e0;padding:1.1rem;">
@@ -1285,10 +1570,10 @@ var INST_TABS={
     {id:'kerivnyky',label:'👔 Керівники',razrMin:15,razrMax:21,okladType:'ped',
      positions:['Директор','Заступник директора з НВР','Заступник директора з АГЧ','Заступник директора з виховної роботи']},
     {id:'pedpers',label:'🧠 Пед. персонал',razrMin:11,razrMax:15,okladType:'ped',
-     positions:['Практичний психолог','Соціальний педагог','Логопед','Дефектолог','Педагог-організатор','Вчитель-логопед','Асистент вчителя']},
+     positions:['Практичний психолог','Соціальний педагог','Логопед','Дефектолог','Педагог-організатор','Вчитель-логопед']},
     {id:'tehpers',label:'🔧 Техн. персонал / Службовці',razrMin:1,razrMax:15,okladType:'rob',positions:[],isGroup:true,
      groupTabs:[
-       {id:'spetsialisty',label:'📑 Спеціалісти',icon:'📑',razrMin:6,razrMax:15,okladType:'rob',positions:['Завідувач господарством','Секретар-друкарка','Лаборант','Заступник директора з господарської частини','Бухгалтер','Головний бухгалтер','Діловод','Секретар','Інспектор з кадрів','Інша посада']},
+       {id:'spetsialisty',label:'📑 Спеціалісти',icon:'📑',razrMin:6,razrMax:15,okladType:'rob',positions:['Завідувач господарством','Секретар-друкарка','Лаборант','Бухгалтер','Головний бухгалтер','Діловод','Секретар','Інспектор з кадрів','Інша посада']},
        {id:'bibliotekar',label:'📖 Бібліотека',icon:'📖',razrMin:8,razrMax:12,okladType:'bib',positions:['Бібліотекар','Бібліотекар (старший)','Завідувач бібліотекою']},
        {id:'med',label:'🏥 Медпрацівники',icon:'🏥',razrMin:7,razrMax:14,okladType:'med',positions:['Сестра медична','Сестра медична старша','Лікар-педіатр']},
        {id:'rob',label:'🔧 Обслуг. персонал',icon:'🔧',razrMin:1,razrMax:8,okladType:'rob',positions:['Сторож','Прибиральник службових приміщень','Двірник','Електрик','Водій','Робітник з комплексного обслуговування','Завгосп','Кочегар']},
@@ -1352,6 +1637,58 @@ var INST_TABS={
      ]},
   ],
 };
+
+// ═══════════════════════════════════════════════════════
+// ФІКСОВАНІ ТАРИФНІ РОЗРЯДИ ПО КОНКРЕТНИХ ПОСАДАХ
+// Ключ: 'idВкладки|Посада'. Якщо посада не знайдена — діє
+// загальний діапазон вкладки (tab.razrMin..tab.razrMax).
+// ═══════════════════════════════════════════════════════
+var POS_RAZR={
+  // --- Спеціалісти ---
+  'spetsialisty|Головний бухгалтер':{min:11,max:14,note:'Залежить від групи закладу (кількості учнів/класів у школі). Завжди вищий за розряд звичайного бухгалтера.'},
+  'spetsialisty|Бухгалтер':{min:7,max:10,note:'Залежить від категорії: без категорії — 7–8 розряд; ІІ категорія — 8–9; І категорія — 9–10.'},
+  'spetsialisty|Завідувач господарством':{min:7,max:8},
+  'spetsialisty|Лаборант':{min:6,max:7,note:'Залежить від кваліфікації.'},
+  'spetsialisty|Діловод':{min:4,max:5},
+  'spetsialisty|Секретар-друкарка':{min:4,max:5},
+  // --- Керівники ---
+  'kerivnyky|Директор':{min:14,max:21},
+  'kerivnyky|Заступник директора з АГЧ':{min:11,max:14},
+  // --- Пед. персонал ---
+  'pedpers|Педагог-організатор':{min:10,max:14},
+  'pedpers|Практичний психолог':{min:10,max:14},
+  'pedpers|Соціальний педагог':{min:10,max:14},
+  'pedpers|Керівник гуртка':{min:10,max:13},
+  // --- Спеціалісти відділу (viddil) ---
+  'pedpers|Головний бухгалтер':{min:11,max:14,note:'Залежить від групи закладу. Завжди вищий за розряд звичайного бухгалтера.'},
+};
+// "Інша посада" — повний відкритий діапазон незалежно від вкладки
+var POS_RAZR_OTHER={min:1,max:15,note:'Повний діапазон розрядів — для специфічних чи рідкісних посад, не передбачених основним переліком.'};
+
+function getPosRazrCfg(tabId,pos){
+  if(pos==='Інша посада')return POS_RAZR_OTHER;
+  return POS_RAZR[tabId+'|'+pos]||null;
+}
+
+// Перебудовує селект тарифного розряду відповідно до обраної посади
+function applyPosRazr(fc,tab){
+  var posEl=fc.querySelector('.fc-pos');
+  var razrEl=fc.querySelector('.fc-razr');
+  var hintEl=fc.querySelector('.fc-razr-hint');
+  if(!posEl||!razrEl)return;
+  var cfg=getPosRazrCfg(tab.id,posEl.value);
+  var min=cfg?cfg.min:tab.razrMin;
+  var max=cfg?cfg.max:tab.razrMax;
+  var cur=parseInt(razrEl.value);
+  var def=(cur>=min&&cur<=max)?cur:(cfg?cfg.min:Math.round((min+max)/2));
+  var tmp=document.createElement('div');
+  tmp.innerHTML=mkRazrSel('fc-razr',tab.okladType,min,max,def);
+  razrEl.parentNode.replaceChild(tmp.firstChild,razrEl);
+  if(hintEl){
+    if(cfg&&cfg.note){hintEl.textContent='ℹ️ '+cfg.note;hintEl.style.display='';}
+    else{hintEl.textContent='';hintEl.style.display='none';}
+  }
+}
 var FIXED_TABS=[];
 var fixedTabsBuilt=false;
 var fcCounts={};
@@ -1425,9 +1762,7 @@ function buildMenuCards(){
 }
 
 function switchTab(tabId){
-  // Перевірити чи групова вкладка
   var _t=FIXED_TABS.find(function(t){return t.id===tabId;});
-  if(_t&&_t.isGroup){openTehpers(_t);return;}
   // Картки
   document.querySelectorAll('.menu-card').forEach(function(el){el.classList.remove('active');});
   var mc=document.getElementById('mcard-'+tabId);
@@ -1440,6 +1775,8 @@ function switchTab(tabId){
     var btn=document.getElementById('ftab-btn-'+tabId);
     if(btn)btn.classList.add('active');
   }
+  // Перевірити чи групова вкладка (після підсвічування картки/кнопки)
+  if(_t&&_t.isGroup){openTehpers(_t);return;}
   // Контент — тільки всередині fixed-tab-content
   var cont=document.getElementById('fixed-tab-content');
   if(cont){
@@ -1525,6 +1862,7 @@ function buildTeacherTabHTML(){
     +'<button class="btn-add" onclick="addTeacher()">+ Додати вчителя</button>'
     +'<div class="btn-row">'
     +'<button class="btn btn-prim" onclick="saveData()">💾 Зберегти</button>'
+    +'<button class="btn btn-purple" onclick="showZarpModal()">🧮 Розрахувати заробітну плату</button>'
     +'<button class="btn btn-pdf" onclick="exportPDF()">🖨️ PDF тарифікація</button>'
     +'<button class="btn btn-excel" onclick="exportExcel()">📊 Excel</button>'
     +'</div></div>';
@@ -1593,7 +1931,7 @@ function addFC(tabId){
     +'<div class="field"><label>Посада</label><select class="fc-pos" >'+posOpts+'</select></div>'
     +'<div class="field fc-custom-pos-wrap" style="display:none;"><label>Введіть назву посади</label><input type="text" class="fc-custom-pos" placeholder="Введіть посаду" oninput="calcFC(this.closest(&#39;.fc&#39;))"></div>'
     +'<div class="field"><label>К-сть ставок</label><input type="number" class="fc-stavky" value="1" min="0.25" max="5" step="0.25" oninput="calcFC(this.closest(\'.fc\'))"></div>'
-    +'<div class="field"><label>Тарифний розряд</label>'+mkRazrSel('fc-razr',type,tab.razrMin,tab.razrMax,defRazr)+'</div>'
+    +'<div class="field"><label>Тарифний розряд</label>'+mkRazrSel('fc-razr',type,tab.razrMin,tab.razrMax,defRazr)+'<div class="hint fc-razr-hint" style="display:none;"></div></div>'
     +'<div class="field"><label>Посадовий оклад (авто)</label><input type="text" class="fc-oklad ro" readonly></div>'
     +'</div>';
 
@@ -1677,8 +2015,10 @@ function addFC(tabId){
   var wrapEl=d.querySelector('.fc-custom-pos-wrap');
   if(posEl)posEl.onchange=function(){
     if(wrapEl)wrapEl.style.display=posEl.value==='Інша посада'?'':'none';
+    applyPosRazr(d,tab);
     calcFC(d);
   };
+  applyPosRazr(d,tab);
   calcFC(d);
 }
 
@@ -2058,7 +2398,7 @@ function collectShtatSections(){
           stavky:stavky,
           oklad:r2(calc.oklad),
           pedZvann:0,
-          stazh:r2(calc.stazhSum),
+          stazh:r2(calc.stazhTotal!==undefined?calc.stazhTotal:calc.stazhSum),
           prestyj:r2(calc.prestSum||0),
           other:r2((calc.klasSum||0)+(calc.zoshTotal||0)+(calc.gurtkiSum||0)+(calc.iklSum||0)+(calc.skladni||0)),
           month:r2(calc.total),
