@@ -426,11 +426,71 @@ footer{background:var(--ink);color:rgba(255,255,255,.4);text-align:center;paddin
       <div class="field"><label>Призначений(а) на посаду (наказ, дата)</label><input type="text" id="emp-f-order" placeholder="напр. наказ №12 від 01.09.2025"></div>
     </div>
 
-    <div class="fg2">📅 Педагогічний стаж <button type="button" class="info-btn-i" onclick="toggleInfo(this.closest('.fg3').querySelector('.info-text'))">i</button></div>
+    <div class="fg2">📅 Педагогічний стаж</div>
     <div class="fg3">
-      <div class="field"><label>Дата початку педагогічного стажу</label><input type="date" id="emp-f-stazh-start" oninput="updateEmpStazhPreview()"></div>
-      <div class="field"><label>Педагогічний стаж на сьогодні (авто)</label><input type="text" id="emp-f-stazh-preview" class="ro" readonly placeholder="—"></div>
-      <div class="info-text" style="grid-column:1/-1;">Вкажіть дату, з якої безперервно рахується педагогічний стаж працівника (зазвичай — дата першого працевлаштування на педагогічну посаду). Стаж на сьогодні рахується автоматично і оновлюється щодня. Коли він перетинає поріг 3, 10 або 20 років — у Кабінеті зʼявиться сповіщення про потребу внести зміни в надбавку за стаж у тарифікації.</div>
+      <!-- Режим вводу стажу -->
+      <div class="field" style="grid-column:1/-1;">
+        <label>Спосіб розрахунку стажу</label>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.35rem;">
+          <button type="button" class="emp-stazh-mode-btn active" data-mode="manual" onclick="setEmpStazhMode('manual')">✏️ Ввести вручну</button>
+          <button type="button" class="emp-stazh-mode-btn" data-mode="single" onclick="setEmpStazhMode('single')">📅 Одна дата початку</button>
+          <button type="button" class="emp-stazh-mode-btn" data-mode="periods" onclick="setEmpStazhMode('periods')">📋 Кілька періодів</button>
+        </div>
+      </div>
+
+      <!-- Ручний ввід -->
+      <div id="emp-stazh-manual-wrap" class="field" style="grid-column:1/-1;">
+        <label>Педагогічний стаж (роки і місяці)</label>
+        <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
+          <input type="number" id="emp-f-stazh-years" min="0" max="60" placeholder="0" style="width:70px;font-family:'Manrope',sans-serif;font-size:.88rem;padding:.4rem .6rem;border-radius:8px;border:1.5px solid var(--bd);" oninput="updateEmpStazhPreview()">
+          <span style="font-size:.82rem;color:var(--mu);">р.</span>
+          <input type="number" id="emp-f-stazh-months" min="0" max="11" placeholder="0" style="width:70px;font-family:'Manrope',sans-serif;font-size:.88rem;padding:.4rem .6rem;border-radius:8px;border:1.5px solid var(--bd);" oninput="updateEmpStazhPreview()">
+          <span style="font-size:.82rem;color:var(--mu);">міс.</span>
+          <span id="emp-f-stazh-manual-preview" style="font-size:.82rem;color:#1a7a4a;font-weight:700;"></span>
+        </div>
+      </div>
+
+      <!-- Одна дата початку -->
+      <div id="emp-stazh-single-wrap" style="display:none;grid-column:1/-1;">
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:flex-end;">
+          <div class="field" style="flex:1;min-width:180px;">
+            <label>Дата початку педагогічної роботи</label>
+            <input type="date" id="emp-f-stazh-start" oninput="updateEmpStazhPreview()">
+          </div>
+          <div class="field" style="flex:1;min-width:180px;">
+            <label>Стаж на сьогодні (авто)</label>
+            <input type="text" id="emp-f-stazh-preview" class="ro" readonly placeholder="—">
+          </div>
+        </div>
+      </div>
+
+      <!-- Кілька періодів -->
+      <div id="emp-stazh-periods-wrap" style="display:none;grid-column:1/-1;">
+        <div id="emp-stazh-periods-list" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:.5rem;"></div>
+        <button type="button" onclick="addEmpStazhPeriod()" style="font-family:'Manrope',sans-serif;font-size:.78rem;font-weight:700;padding:.35rem .75rem;border-radius:8px;border:1.5px dashed #1d6fa4;background:#f0f6fc;color:#1d6fa4;cursor:pointer;">+ Додати період роботи</button>
+        <div id="emp-stazh-periods-total" style="margin-top:.6rem;font-size:.82rem;font-weight:700;color:#1a7a4a;"></div>
+      </div>
+    </div>
+
+    <div class="fg2">📋 Призначення</div>
+    <div class="fg3">
+      <div class="field" style="grid-column:1/-1;">
+        <label>Призначений(а) на посаду (наказ, дата)</label>
+        <input type="text" id="emp-f-order" placeholder="напр. наказ №12 від 01.09.2025">
+      </div>
+      <div class="field" style="grid-column:1/-1;">
+        <label>На яку посаду призначений(а)</label>
+        <input type="text" id="emp-f-order-pos" placeholder="напр. вчитель математики, класний керівник 8-А">
+      </div>
+      <div class="field" style="grid-column:1/-1;padding-top:.75rem;">
+        <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;text-transform:none;font-size:.85rem;font-weight:600;letter-spacing:0;">
+          <input type="checkbox" id="emp-f-sumisnyk-chk" onchange="document.getElementById('emp-f-sumisnyk-pos-wrap').style.display=this.checked?'':' none'"> Суміщення / сумісник
+        </label>
+      </div>
+      <div class="field" id="emp-f-sumisnyk-pos-wrap" style="display:none;grid-column:1/-1;">
+        <label>Посада за суміщенням / сумісництвом</label>
+        <input type="text" id="emp-f-sumisnyk-pos" placeholder="напр. завідувач кабінетом, класний керівник">
+      </div>
     </div>
 
     <div class="fg2">📋 Статус</div>
@@ -2200,6 +2260,7 @@ function getData(sec){
 }
 function forceSaveData(){
   closeValModal();
+  saveFCAll(); // зберегти всі FC-вкладки
   const teachers=[];
   document.querySelectorAll('.tc').forEach(s=>teachers.push(getData(s)));
   const info=window.instInfo||{};
@@ -2686,7 +2747,7 @@ body{font-family:Arial,sans-serif;font-size:8px;padding:10px;}
 h2{font-size:11px;text-align:center;margin-bottom:2px;}
 .sub{text-align:center;font-size:8.5px;color:#555;margin-bottom:10px;}
 table{width:100%;border-collapse:collapse;}
-th{background:#1d3a5a;color:#fff;padding:3px 2px;font-size:7px;line-height:1.2;text-align:center;}
+th{background:#1d3a5a;color:#fff;padding:3px 2px;font-size:7px;line-height:1.2;text-align:center;border:1px solid #0e2a45;}
 td{padding:3px 2px;border:1px solid #ccc;text-align:center;font-size:7.5px;vertical-align:middle;}
 tr:nth-child(even) td{background:#f7f7f7;}
 .tf td{background:#1d3a5a!important;color:#fff;font-weight:bold;font-size:7px;}
@@ -2704,8 +2765,8 @@ ${(autoprint||autoprint==='pdf')?'':`<div class="no-print">
   <button class="btn-edit" onclick="window.opener&&window.opener.focus();window.close();">✏️ Внести зміни (повернутись до тарифікації)</button>
   <button class="btn-close" onclick="window.close()">✕ Закрити</button>
 </div>`}
-<h2>ТАРИФІКАЦІЙНА ВІДОМІСТЬ ПЕДАГОГІЧНИХ ПРАЦІВНИКІВ</h2>
-<div class="sub">${school} · Навчальний рік ${year} · Дата тарифікації: ${tarDate}</div>
+<h2 id="doc-main-title">ТАРИФІКАЦІЙНА ВІДОМІСТЬ ПЕДАГОГІЧНИХ ПРАЦІВНИКІВ</h2>
+<div class="sub" id="doc-main-sub">${school} · Навчальний рік ${year} · Дата тарифікації: ${tarDate}</div>
 <table>
 <thead>
 <tr>
@@ -3193,7 +3254,45 @@ function buildMenuCards(){
   });
 }
 
+// ── Збереження / відновлення даних усіх FC-вкладок ──────────
+const FC_ALL_KEY='etarif_fc_all'; // {tabId: [{...fcData},...]}
+
+function saveFCAll(){
+  const result={};
+  FIXED_TABS.forEach(function(tab){
+    if(tab.id==='teachers'||tab.isGroup)return;
+    var list=document.getElementById('flist-'+tab.id);
+    if(!list)return;
+    var items=[];
+    list.querySelectorAll('.fc').forEach(function(sec){items.push(getFCData(sec));});
+    result[tab.id]=items;
+  });
+  try{localStorage.setItem(FC_ALL_KEY,JSON.stringify(result));}catch(e){}
+}
+
+function loadFCAll(){
+  var raw;
+  try{raw=JSON.parse(localStorage.getItem(FC_ALL_KEY)||'null');}catch(e){return;}
+  if(!raw)return;
+  FIXED_TABS.forEach(function(tab){
+    if(tab.id==='teachers'||tab.isGroup)return;
+    var saved=raw[tab.id];
+    if(!saved||!saved.length)return;
+    var list=document.getElementById('flist-'+tab.id);
+    if(!list)return;
+    // Очищаємо одну порожню картку що додається за замовчуванням
+    list.innerHTML='';
+    saved.forEach(function(d){
+      addFC(tab.id);
+      var secs=list.querySelectorAll('.fc');
+      var sec=secs[secs.length-1];
+      if(sec)applyFCData(sec,d);
+    });
+  });
+}
+
 function switchTab(tabId){
+  saveFCAll(); // зберегти FC-дані перед перемиканням
   var _t=FIXED_TABS.find(function(t){return t.id===tabId;});
   // Картки
   document.querySelectorAll('.menu-card').forEach(function(el){el.classList.remove('active');});
@@ -3216,6 +3315,21 @@ function switchTab(tabId){
     var tab=document.getElementById('ftab-'+tabId);
     if(tab){
       tab.classList.add('active');
+      // Якщо це FC-вкладка і список порожній — відновити з localStorage
+      if(tabId!=='teachers'&&_t&&!_t.isGroup){
+        var list=document.getElementById('flist-'+tabId);
+        if(list&&list.querySelectorAll('.fc').length===0){
+          var raw;try{raw=JSON.parse(localStorage.getItem('etarif_fc_all')||'null');}catch(e){}
+          if(raw&&raw[tabId]&&raw[tabId].length){
+            raw[tabId].forEach(function(d){
+              addFC(tabId);
+              var secs=list.querySelectorAll('.fc');
+              var sec=secs[secs.length-1];
+              if(sec)applyFCData(sec,d);
+            });
+          }
+        }
+      }
       // Прокрутити
       var menuCards=document.getElementById('fixed-menu-cards');
       if(menuCards)menuCards.scrollIntoView({behavior:'smooth',block:'start'});
@@ -3278,6 +3392,9 @@ function buildFixedTabs(){
 
   // Активувати першу вкладку
   if(FIXED_TABS.length>0)switchTab(FIXED_TABS[0].id);
+
+  // Відновити збережені FC-дані
+  loadFCAll();
   // Прив'язати кнопки tehpers
   FIXED_TABS.forEach(function(tab){
     if(!tab.isGroup)return;
@@ -3296,7 +3413,7 @@ function buildTeacherTabHTML(){
     +'</div>'
     +'<div class="btn-row" style="margin-bottom:1rem;">'
     +'<button class="btn btn-prim" onclick="saveAndPrintPDF()">💾 Зберегти і роздрукувати</button>'
-    +'<button class="btn" style="background:#5a3a8b;color:#fff;" onclick="cabSaveOrSubscribe(\'teachers\')">📥 Зберегти поточну тарифікацію в кабінет</button>'
+    +'<button class="btn" style="background:#5a3a8b;color:#fff;" onclick="cabSaveOrSubscribe(\'teachers\')">📥 Зберегти в особистий кабінет</button>'
     +'</div>'
     +'<div class="tfilter-bar">'
     +'<div class="tfilter-search"><input type="text" id="tfilter-input" placeholder="Пошук за ПІБ або предметом…" oninput="applyTeacherFilter()"></div>'
@@ -3311,7 +3428,7 @@ function buildTeacherTabHTML(){
     +'<button class="btn-add" onclick="addTeacher()">+ Додати вчителя</button>'
     +'<div class="btn-row">'
     +'<button class="btn btn-prim" onclick="saveAndPrintPDF()">💾 Зберегти і роздрукувати</button>'
-    +'<button class="btn" style="background:#5a3a8b;color:#fff;" onclick="cabSaveOrSubscribe(\'teachers\')">📥 Зберегти поточну тарифікацію в кабінет</button>'
+    +'<button class="btn" style="background:#5a3a8b;color:#fff;" onclick="cabSaveOrSubscribe(\'teachers\')">📥 Зберегти в особистий кабінет</button>'
     +'<button class="btn btn-purple" onclick="showZarpModal()">🧮 Розрахувати заробітну плату</button>'
     +'<button class="btn btn-excel" onclick="exportExcel()">📊 Excel</button>'
     +'</div></div>';
@@ -3333,7 +3450,7 @@ function buildFTabHTML(tab){
     +'</div>'
     +'<div class="btn-row" style="margin-bottom:1rem;">'
     +'<button class="btn btn-prim" onclick="saveAndPrintFCPDF(\''+tab.id+'\')">💾 Зберегти і роздрукувати</button>'
-    +'<button class="btn" style="background:#5a3a8b;color:#fff;" onclick="cabSaveOrSubscribe(\'teachers\')">📥 Зберегти поточну тарифікацію в кабінет</button>'
+    +'<button class="btn" style="background:#5a3a8b;color:#fff;" onclick="cabSaveOrSubscribe(\'teachers\')">📥 Зберегти в особистий кабінет</button>'
     +'</div>'
     +'<div class="tfilter-bar">'
     +'<div class="tfilter-search"><input type="text" class="fc-filter-input" placeholder="Пошук за ПІБ або посадою…" oninput="applyFCFilter(this)" data-tab="'+tab.id+'"></div>'
@@ -3348,7 +3465,7 @@ function buildFTabHTML(tab){
     +'<button class="btn-add" onclick="addFC(\''+tab.id+'\')">+ Додати посаду</button>'
     +'<div class="btn-row">'
     +'<button class="btn btn-prim" onclick="saveAndPrintFCPDF(\''+tab.id+'\')">💾 Зберегти і роздрукувати</button>'
-    +'<button class="btn" style="background:#5a3a8b;color:#fff;" onclick="cabSaveOrSubscribe(\''+tab.id+'\')" >📥 Зберегти поточну тарифікацію в кабінет</button>'
+    +'<button class="btn" style="background:#5a3a8b;color:#fff;" onclick="cabSaveOrSubscribe(\''+tab.id+'\')" >📥 Зберегти в особистий кабінет</button>'
     +'<button class="btn btn-purple" onclick="showFCZarp(\''+tab.id+'\')">🧮 Розрахунок зарплати</button>'
     +'</div></div>';
 }
@@ -4283,14 +4400,17 @@ function openSection(secId){
   if(secId==='zarplata'){
     alert('Розділ буде доступний незабаром');
   } else if(secId==='tarif'){
-    var barEl=document.getElementById('fixed-tabs');
-    var contEl=document.getElementById('fixed-tab-content');
-    var cardsEl=document.getElementById('menu-cards-grid');
-    if(barEl)barEl.innerHTML='';
-    if(contEl)contEl.innerHTML='';
-    if(cardsEl)cardsEl.innerHTML='';
-    fixedTabsBuilt=false;
-    buildFixedTabs();
+    // Якщо вкладки вже побудовані — не перебудовуємо, просто показуємо сторінку.
+    // Це зберігає всі введені дані при перемиканні між сторінками.
+    if(!fixedTabsBuilt){
+      var barEl=document.getElementById('fixed-tabs');
+      var contEl=document.getElementById('fixed-tab-content');
+      var cardsEl=document.getElementById('menu-cards-grid');
+      if(barEl)barEl.innerHTML='';
+      if(contEl)contEl.innerHTML='';
+      if(cardsEl)cardsEl.innerHTML='';
+      buildFixedTabs();
+    }
     goPage('p-fixed',null);
   } else if(secId==='employees'){
     openEmployeesPage();
@@ -4914,9 +5034,9 @@ function openDayMenu(tabType,name,y,m,d,vacIdx){
     +'<label style="font-size:.72rem;color:#888;display:block;margin-bottom:.2rem;">Назва відпустки (власний текст)</label>'
     +'<input type="text" id="dm-custom-text" placeholder="напр. навчальна відпустка" style="width:100%;padding:.4rem;border:1.5px solid #c8d4e0;border-radius:7px;font-size:.85rem;"></div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.75rem;">'
-    +'<div><label style="font-size:.72rem;color:#888;display:block;margin-bottom:.2rem;">Дата початку</label>'
+    +'<div><label style="font-size:.72rem;color:#888;display:block;margin-bottom:.2rem;" id="dm-from-label">Дата початку</label>'
     +'<input type="date" id="dm-from" value="'+fromDef+'" style="width:100%;padding:.4rem;border:1.5px solid #c8d4e0;border-radius:7px;font-size:.85rem;"></div>'
-    +'<div><label style="font-size:.72rem;color:#888;display:block;margin-bottom:.2rem;">Дата кінця</label>'
+    +'<div><label style="font-size:.72rem;color:#888;display:block;margin-bottom:.2rem;" id="dm-to-label">Дата кінця</label>'
     +'<input type="date" id="dm-to" value="'+toDef+'" style="width:100%;padding:.4rem;border:1.5px solid #c8d4e0;border-radius:7px;font-size:.85rem;"></div>'
     +'</div>'
     +'<button id="dm-apply" style="width:100%;background:#1d6fa4;color:#fff;border:none;border-radius:8px;padding:.65rem;font-size:.88rem;font-weight:700;cursor:pointer;">'+(hasVac?'Оновити':'Застосувати')+'</button>'
@@ -4930,9 +5050,76 @@ function openDayMenu(tabType,name,y,m,d,vacIdx){
 
   var dmType=document.getElementById('dm-type');
   var dmWrap=document.getElementById('dm-custom-wrap');
-  function toggleCustom(){if(dmWrap)dmWrap.style.display=dmType.value==='insha'?'':'none';}
-  dmType.onchange=toggleCustom;
-  toggleCustom();
+  var dmFrom=document.getElementById('dm-from');
+  var dmTo=document.getElementById('dm-to');
+
+  function onDmTypeChange(){
+    var t=dmType.value;
+    if(dmWrap)dmWrap.style.display=t==='insha'?'':'none';
+    var fromLbl=document.getElementById('dm-from-label');
+    var toLbl=document.getElementById('dm-to-label');
+
+    if(t==='zvilneno'){
+      if(fromLbl)fromLbl.textContent='Дата звільнення';
+      if(toLbl)toLbl.textContent='Кінець (авто до кін. міс.)';
+      var lastDay=daysInMonth(y,m);
+      if(dmTo)dmTo.value=dStr(y,m,lastDay);
+      showDmHint('📌 Введіть дату звільнення. Кінець місяця підставлено автоматично — скоригуйте якщо потрібно.');
+    } else if(t==='dopolog'){
+      if(fromLbl)fromLbl.textContent='Початок відпустки';
+      if(toLbl)toLbl.textContent='Кінець (126 к.д. авто)';
+      var fromVal=dmFrom?dmFrom.value:ds;
+      if(fromVal){
+        var fd=new Date(fromVal);
+        fd.setDate(fd.getDate()+125);
+        var toStr=fd.getFullYear()+'-'+String(fd.getMonth()+1).padStart(2,'0')+'-'+String(fd.getDate()).padStart(2,'0');
+        if(dmTo)dmTo.value=toStr;
+      }
+      showDmHint('🤰 Стандартна тривалість — 126 к.д. Дату закінчення підставлено автоматично — змініть якщо інша.');
+    } else {
+      if(fromLbl)fromLbl.textContent='Дата початку';
+      if(toLbl)toLbl.textContent='Дата кінця';
+      hideDmHint();
+    }
+  }
+  // При зміні дати початку для допологової — перераховуємо кінець
+  if(dmFrom){
+    dmFrom.addEventListener('change',function(){
+      if(dmType.value==='dopolog'){
+        var fd=new Date(dmFrom.value);
+        if(!isNaN(fd)){
+          fd.setDate(fd.getDate()+125);
+          var toStr=fd.getFullYear()+'-'+String(fd.getMonth()+1).padStart(2,'0')+'-'+String(fd.getDate()).padStart(2,'0');
+          if(dmTo)dmTo.value=toStr;
+        }
+      } else if(dmType.value==='zvilneno'){
+        var lastDay=daysInMonth(y,m);
+        if(dmTo)dmTo.value=dStr(y,m,lastDay);
+      }
+    });
+  }
+
+  function showDmHint(text){
+    var h=document.getElementById('dm-hint');
+    if(!h){
+      h=document.createElement('div');
+      h.id='dm-hint';
+      h.style.cssText='margin-bottom:.65rem;padding:.45rem .7rem;background:#fff8e1;border-left:3px solid #e8a120;border-radius:0 7px 7px 0;font-size:.77rem;color:#6b4e00;line-height:1.5;';
+      var applyBtn=document.getElementById('dm-apply');
+      if(applyBtn)applyBtn.parentNode.insertBefore(h,applyBtn);
+    }
+    h.textContent=text;
+    h.style.display='block';
+  }
+  function hideDmHint(){
+    var h=document.getElementById('dm-hint');
+    if(h)h.style.display='none';
+  }
+
+  dmType.onchange=onDmTypeChange;
+  // Показати підказку якщо тип вже вибраний при відкритті
+  if(typeDef==='zvilneno'||typeDef==='dopolog')onDmTypeChange();
+
   if(curVac&&curVac.customText){var ct=document.getElementById('dm-custom-text');if(ct)ct.value=curVac.customText;}
 
   document.getElementById('dm-apply').onclick=function(){
@@ -5170,7 +5357,7 @@ function openTehSubTab(gt,parentTab){
         +'</div>'
         +'<div class="btn-row" style="margin-bottom:1rem;">'
         +'<button class="btn btn-prim" onclick="saveAndPrintFCPDF(\''+gt.id+'\')">💾 Зберегти і роздрукувати</button>'
-        +'<button class="btn" style="background:#5a3a8b;color:#fff;" onclick="cabSaveOrSubscribe(\''+gt.id+'\')" >📥 Зберегти поточну тарифікацію в кабінет</button>'
+        +'<button class="btn" style="background:#5a3a8b;color:#fff;" onclick="cabSaveOrSubscribe(\''+gt.id+'\')" >📥 Зберегти в особистий кабінет</button>'
         +'</div>'
         +'<div class="tfilter-bar">'
         +'<div class="tfilter-search"><input type="text" class="fc-filter-input" placeholder="Пошук за ПІБ або посадою…" oninput="applyFCFilter(this)" data-tab="'+gt.id+'"></div>'
@@ -5185,7 +5372,7 @@ function openTehSubTab(gt,parentTab){
         +'<button class="btn-add" id="add-btn-'+gt.id+'">+ Додати посаду</button>'
         +'<div class="btn-row">'
         +'<button class="btn btn-prim" onclick="saveAndPrintFCPDF(\''+gt.id+'\')">💾 Зберегти і роздрукувати</button>'
-        +'<button class="btn" style="background:#5a3a8b;color:#fff;" onclick="cabSaveOrSubscribe(\''+gt.id+'\')" >📥 Зберегти поточну тарифікацію в кабінет</button>'
+        +'<button class="btn" style="background:#5a3a8b;color:#fff;" onclick="cabSaveOrSubscribe(\''+gt.id+'\')" >📥 Зберегти в особистий кабінет</button>'
         +'</div>'
         +'</div>';
       cont.appendChild(wrapper);
@@ -5444,6 +5631,168 @@ async function loadProfile(){
   s('cab-phone',p.phone);s('cab-email',p.email);s('cab-address',p.address);
 }
 
+// ── Комплексне збереження в кабінет: один файл з УСІМА тарифікаціями
+// (вчителі, адміністрація, пед.персонал, спеціалісти, бібліотека,
+// медпрацівники, обслуга) на ОДНУ дату — дату, вказану на сторінці,
+// з якої натиснута кнопка "Зберегти в кабінет" ──
+
+// ID документа, який зараз редагується (відкритий з Кабінету або
+// щойно збережений у поточній сесії). Якщо дата тарифікації НЕ
+// змінилась відносно цього документа — повторне збереження ЗАМІНЮЄ
+// його. Якщо дата змінилась — створюється окремий новий документ.
+let _currentOpenDocId=null;
+
+// Список усіх категорій поточного типу закладу (id + людська назва)
+function _tarifCategoryDefs(){
+  var defs=[];
+  (typeof FIXED_TABS!=='undefined'?FIXED_TABS:[]).forEach(function(t){
+    if(t.hidden)return;
+    if(t.isGroup){
+      (t.groupTabs||[]).forEach(function(gt){
+        defs.push({id:gt.id,label:gt.label.replace(/^[^\wА-Яа-яІіЇїЄєҐґ]+/,'').trim()});
+      });
+    } else {
+      defs.push({id:t.id,label:t.label.replace(/^[^\wА-Яа-яІіЇїЄєҐґ]+/,'').trim()});
+    }
+  });
+  return defs;
+}
+
+// Дані конкретної категорії з поточного DOM (без урахування дати)
+function _gatherCategoryPeople(catId){
+  if(catId==='teachers'){
+    var arr=[];
+    document.querySelectorAll('#teachers-list-tab .tc').forEach(function(s){arr.push(getData(s));});
+    return {exists:true,people:arr};
+  }
+  var list=document.getElementById('flist-'+catId);
+  if(!list)return{exists:false,people:[]};
+  var arr=[];
+  list.querySelectorAll('.fc').forEach(function(sec){
+    var raw=getFCData(sec);
+    var calc=calcFC(sec);
+    if(raw)arr.push(Object.assign({},raw,{total:calc?calc.total:0,oklad:calc?calc.oklad:0,pib:((raw.last||'')+' '+(raw.first||'')).trim()||'—'}));
+  });
+  return {exists:true,people:arr};
+}
+
+function _hasRealData(people){
+  return (people||[]).some(function(p){return (p.last||'').trim()||(p.first||'').trim();});
+}
+
+function _fmtDateUA(iso){
+  if(!iso)return '—';
+  var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if(!m)return iso;
+  return m[3]+'.'+m[2]+'.'+m[1];
+}
+
+async function saveAllToCabinet(triggerCategory){
+  triggerCategory=triggerCategory||'teachers';
+  if(!_cabCryptoKey){
+    if(confirm('Щоб зберігати тарифікації в кабінеті, потрібно увійти.\n\nПерейти в Кабінет зараз?')){
+      goPage('p-cabinet',null);openCabinet();
+    }
+    return;
+  }
+  saveFCAll(); // зафіксувати поточні введені FC-дані
+
+  const targetDate=getTarifDate(triggerCategory);
+  if(!targetDate){
+    alert('Спочатку вкажіть дату тарифікації на цій сторінці.');
+    return;
+  }
+
+  const info=window.instInfo||{};
+  const school=info.name||document.getElementById('cab-name').value||'Заклад';
+  const year=info.year||new Date().getFullYear();
+
+  // Проходимо по всіх категоріях закладу.
+  // Розрізняємо дві проблемні ситуації:
+  //  1) даних немає взагалі (нічого не заповнено) — "missing"
+  //  2) дані є, але дата тарифікації цієї категорії інша — "dateMismatch"
+  const defs=_tarifCategoryDefs();
+  const categories={};
+  const missing=[];         // мітки категорій без жодних даних
+  const dateMismatch=[];    // мітки категорій з даними, але не на targetDate
+  defs.forEach(function(cd){
+    const res=_gatherCategoryPeople(cd.id);
+    const has=res.exists&&_hasRealData(res.people);
+    if(!has){
+      missing.push(cd.label);
+      return;
+    }
+    const catDate=tarifDates[cd.id]||info.date||'';
+    const dateOk=!catDate||catDate===targetDate;
+    if(dateOk){
+      categories[cd.id]={label:cd.label,date:catDate||targetDate,people:res.people};
+    } else {
+      dateMismatch.push(cd.label+' (введена дата: '+_fmtDateUA(catDate)+')');
+    }
+  });
+
+  if(!Object.keys(categories).length){
+    alert('Немає даних для збереження на дату '+_fmtDateUA(targetDate)+'.\nСпочатку заповніть тарифікацію.');
+    return;
+  }
+
+  if(missing.length||dateMismatch.length){
+    var msgParts=[];
+    if(missing.length)msgParts.push('❌ Не введено даних у тарифікацію:\n• '+missing.join('\n• '));
+    if(dateMismatch.length)msgParts.push('📅 Некоректно стоїть дата тарифікації (не '+_fmtDateUA(targetDate)+'):\n• '+dateMismatch.join('\n• '));
+    const proceed=confirm(
+      '⚠️ '+msgParts.join('\n\n')+
+      '\n\nМожна зберегти зараз і виправити ці тарифікації пізніше.\n\n'+
+      'Зберегти файл із наявними коректними тарифікаціями («'+Object.keys(categories).map(function(id){return categories[id].label;}).join('», «')+'»)?'
+    );
+    if(!proceed)return;
+  }
+
+  const docs=await getCabDocs();
+
+  // Чи це продовження редагування вже існуючого документа
+  // (відкритого з Кабінету або збереженого раніше в цій сесії)?
+  let existingIdx=-1;
+  if(_currentOpenDocId){
+    existingIdx=docs.findIndex(function(d){return d.id===_currentOpenDocId&&d.bundle;});
+  }
+  const isUpdate=existingIdx>=0&&docs[existingIdx].date===targetDate;
+
+  const defaultTitle=isUpdate?docs[existingIdx].title:('Тарифікація — '+school+' — '+_fmtDateUA(targetDate));
+  const title=prompt('Назва документа:',defaultTitle);
+  if(title===null)return;
+
+  const _now=new Date();
+  const _mk=_now.getFullYear()+'-'+String(_now.getMonth()+1).padStart(2,'0');
+  const doc={
+    id:isUpdate?docs[existingIdx].id:'doc_'+Date.now(),type:'tarif',bundle:true,
+    title:title||('Тарифікація '+_fmtDateUA(targetDate)),
+    school:school,year:year,date:targetDate,monthKey:_mk,
+    savedAt:_now.toLocaleString('uk-UA',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}),
+    instType:typeof curInstType!=='undefined'?curInstType:'',
+    categories:categories,
+    missingCategories:missing,
+    dateMismatchCategories:dateMismatch,
+    data:{school,edrpou:info.edrpou||'',dir:info.dir||'',year,date:targetDate}
+  };
+  if(isUpdate){
+    docs[existingIdx]=doc; // замінюємо існуючий документ (та сама дата)
+  } else {
+    docs.unshift(doc); // нова дата тарифікації — окремий документ
+    if(docs.length>30)docs.splice(30);
+  }
+  _currentOpenDocId=doc.id;
+  await setCabDocs(docs);
+  renderDocList();
+  const issueHint=[];
+  if(missing.length)issueHint.push('без даних: '+missing.join(', '));
+  if(dateMismatch.length)issueHint.push('невірна дата: '+dateMismatch.map(function(s){return s.replace(/\s*\(введена дата:[^)]*\)/,'');}).join(', '));
+  showSaveToast(
+    (isUpdate?'✅ Тарифікацію на ':'✅ Нову тарифікацію на ')+_fmtDateUA(targetDate)+(isUpdate?' оновлено в кабінеті':' збережено в кабінеті'),
+    issueHint.length?issueHint.join(' · '):'📁 Переглянути: розділ 🗂️ Кабінет у навігації'
+  );
+}
+
 async function saveCurrentDoc(category){
   category=category||'teachers';
   if(!_cabCryptoKey){
@@ -5498,9 +5847,282 @@ async function saveCurrentDoc(category){
   showSaveToast('✅ «'+doc.title+'» збережено в кабінеті','📁 Переглянути: розділ 🗂️ Кабінет у навігації');
 }
 
+// ============================================================
+// ТИТУЛЬНА ТАРИФІКАЦІЯ (титульний аркуш зі статистикою закладу)
+// Альбомна сторінка: ПОГОДЖУЮ/ЗАТВЕРДЖУЮ, назва закладу, таблиця
+// показників (класи, учні, години) — редагована, зберігається
+// разом із комплексним документом у кабінеті.
+// ============================================================
+const TITLE_PAGE_ROWS=[
+  {id:1,label:'Число класів на 01 вересня',type:'d'},
+  {id:2,label:'Число класів-комплектів на 01 вересня',type:'d'},
+  {id:3,label:'Число учнів на 01 вересня',type:'d'},
+  {id:4,label:'Загальне число годин викладацької роботи в тиждень по тарифікації',type:'d'},
+  {id:5,label:'в тому числі:',type:'h'},
+  {id:6,label:'а) число годин за навчальним планом',type:'d'},
+  {id:7,label:'б) з них число додаткових годин, всього',type:'d'},
+  {id:8,label:'з них:',type:'h'},
+  {id:9,label:"у зв'язку з вивільненням вчителів початкових класів від проведення уроків:",type:'h'},
+  {id:10,label:'фізичної культури',type:'d'},
+  {id:11,label:'музичне мистецтво',type:'d'},
+  {id:12,label:'іноземної мови',type:'d'},
+  {id:13,label:'інформатики',type:'d'},
+  {id:14,label:"у зв'язку з діленням класів на групи при проведенні занять з:",type:'h'},
+  {id:15,label:'іноземної мови',type:'d'},
+  {id:16,label:'трудового навчання',type:'d'},
+  {id:17,label:'інформатики',type:'d'},
+  {id:18,label:'української мови',type:'d'},
+  {id:19,label:'фізичної культури (10–11 кл.)',type:'d'},
+  {id:20,label:'Захисту України (10–11 кл.)',type:'d'},
+];
+
+function _defaultTitlePageData(doc){
+  const info=window.instInfo||{};
+  return {
+    school:doc.school||info.name||'',
+    subject:'вчителів та інших працівників',
+    dateText:doc.date?_fmtDateUA(doc.date):'',
+    village:'',
+    golova:'',
+    golovaDate:'',
+    dyr:(doc.data&&doc.data.dir)||info.dir||'',
+    dyrDate:'',
+    rows:{} // {rowId:{c1,c2,c3}}
+  };
+}
+
+// Повертає titlePage документа (створює дефолтну, якщо ще не збережена)
+async function _getTitlePage(docId){
+  const docs=await getCabDocs();
+  const doc=docs.find(d=>d.id===docId);
+  if(!doc)return null;
+  if(!doc.titlePage)doc.titlePage=_defaultTitlePageData(doc);
+  return {doc,docs};
+}
+
+function showTitlePageModal(docId){
+  var old=document.getElementById('title-page-modal');if(old)old.remove();
+  _getTitlePage(docId).then(function(res){
+    if(!res){alert('Документ не знайдено.');return;}
+    const tp=res.doc.titlePage;
+    const rowsHtml=TITLE_PAGE_ROWS.map(function(r){
+      if(r.type==='h'){
+        return '<tr><td colspan="5" style="text-align:left;font-weight:700;background:#f2f2f2;padding:.35rem .5rem;font-size:.78rem;">'+r.label+'</td></tr>';
+      }
+      const v=tp.rows[r.id]||{};
+      return '<tr>'
+        +'<td style="text-align:center;width:28px;font-size:.78rem;">'+r.id+'</td>'
+        +'<td style="text-align:left;font-size:.78rem;">'+r.label+'</td>'
+        +'<td><input type="number" step="any" id="tpr-'+r.id+'-c1" value="'+(v.c1!=null?v.c1:'')+'" oninput="_tpRecalc('+r.id+')" style="width:64px;padding:.3rem;border:1px solid #c8d4e0;border-radius:6px;text-align:center;"></td>'
+        +'<td><input type="number" step="any" id="tpr-'+r.id+'-c2" value="'+(v.c2!=null?v.c2:'')+'" oninput="_tpRecalc('+r.id+')" style="width:64px;padding:.3rem;border:1px solid #c8d4e0;border-radius:6px;text-align:center;"></td>'
+        +'<td><input type="number" step="any" id="tpr-'+r.id+'-c3" value="'+(v.c3!=null?v.c3:'')+'" oninput="_tpRecalc('+r.id+')" style="width:64px;padding:.3rem;border:1px solid #c8d4e0;border-radius:6px;text-align:center;"></td>'
+        +'<td id="tpr-'+r.id+'-tot" style="text-align:center;font-weight:700;">'+_tpSum(v)+'</td>'
+        +'</tr>';
+    }).join('');
+
+    const html='<div id="title-page-modal" style="position:fixed;inset:0;background:rgba(14,26,43,.6);z-index:5000;display:flex;align-items:center;justify-content:center;padding:1rem;" onclick="if(event.target===this)this.remove();">'
+      +'<div style="background:#fff;border-radius:14px;padding:1.5rem;max-width:760px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.3);max-height:90vh;overflow:auto;">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.9rem;">'
+      +'<div style="font-family:Unbounded,sans-serif;font-size:1rem;font-weight:700;color:#0e1a2b;">📋 Титульна тарифікація</div>'
+      +'<button onclick="document.getElementById(\'title-page-modal\').remove()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888;">✕</button>'
+      +'</div>'
+      +'<div style="font-size:.78rem;color:#6b7a8d;margin-bottom:1rem;">Дані титульної сторінки редагуються тут і зберігаються разом з документом у кабінеті.</div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1rem;">'
+      +'<label style="font-size:.78rem;font-weight:600;">Заклад освіти<input id="tp-school" value="'+(tp.school||'').replace(/"/g,'&quot;')+'" style="width:100%;margin-top:.25rem;padding:.5rem;border:1px solid #c8d4e0;border-radius:8px;"></label>'
+      +'<label style="font-size:.78rem;font-weight:600;">Тарифікаційний список (кого)<input id="tp-subject" value="'+(tp.subject||'').replace(/"/g,'&quot;')+'" style="width:100%;margin-top:.25rem;padding:.5rem;border:1px solid #c8d4e0;border-radius:8px;"></label>'
+      +'<label style="font-size:.78rem;font-weight:600;">Дата тарифікації (напр. 05 вересня 2025р.)<input id="tp-date" value="'+(tp.dateText||'').replace(/"/g,'&quot;')+'" style="width:100%;margin-top:.25rem;padding:.5rem;border:1px solid #c8d4e0;border-radius:8px;"></label>'
+      +'<label style="font-size:.78rem;font-weight:600;">Населений пункт (с. ...)<input id="tp-village" value="'+(tp.village||'').replace(/"/g,'&quot;')+'" style="width:100%;margin-top:.25rem;padding:.5rem;border:1px solid #c8d4e0;border-radius:8px;"></label>'
+      +'<label style="font-size:.78rem;font-weight:600;">Голова трудового колективу (ПІБ)<input id="tp-golova" value="'+(tp.golova||'').replace(/"/g,'&quot;')+'" style="width:100%;margin-top:.25rem;padding:.5rem;border:1px solid #c8d4e0;border-radius:8px;"></label>'
+      +'<label style="font-size:.78rem;font-weight:600;">Дата погодження<input type="date" id="tp-golova-date" value="'+(tp.golovaDate||'')+'" style="width:100%;margin-top:.25rem;padding:.5rem;border:1px solid #c8d4e0;border-radius:8px;"></label>'
+      +'<label style="font-size:.78rem;font-weight:600;">Директор (ПІБ)<input id="tp-dyr" value="'+(tp.dyr||'').replace(/"/g,'&quot;')+'" style="width:100%;margin-top:.25rem;padding:.5rem;border:1px solid #c8d4e0;border-radius:8px;"></label>'
+      +'<label style="font-size:.78rem;font-weight:600;">Дата затвердження<input type="date" id="tp-dyr-date" value="'+(tp.dyrDate||'')+'" style="width:100%;margin-top:.25rem;padding:.5rem;border:1px solid #c8d4e0;border-radius:8px;"></label>'
+      +'</div>'
+      +'<table style="width:100%;border-collapse:collapse;margin-bottom:1rem;">'
+      +'<thead><tr style="background:#1d6fa4;color:#fff;">'
+      +'<th style="padding:.4rem;font-size:.72rem;">№</th><th style="padding:.4rem;font-size:.72rem;text-align:left;">Показники на початок навчального року</th>'
+      +'<th style="padding:.4rem;font-size:.72rem;">І–ІV</th><th style="padding:.4rem;font-size:.72rem;">V–ІX</th><th style="padding:.4rem;font-size:.72rem;">X–XI</th><th style="padding:.4rem;font-size:.72rem;">РАЗОМ</th>'
+      +'</tr></thead><tbody>'
+      +rowsHtml
+      +'</tbody></table>'
+      +'<div style="display:flex;gap:.6rem;flex-wrap:wrap;">'
+      +'<button class="btn btn-prim" onclick="saveTitlePage(\''+docId+'\')">💾 Зберегти</button>'
+      +'<button class="btn" style="background:#1a4a2e;color:#fff;" onclick="printTitlePage(\''+docId+'\')">🖨️ Переглянути і роздрукувати</button>'
+      +'</div>'
+      +'</div></div>';
+    document.body.insertAdjacentHTML('beforeend',html);
+  });
+}
+
+function _tpSum(v){
+  const s=(parseFloat(v.c1)||0)+(parseFloat(v.c2)||0)+(parseFloat(v.c3)||0);
+  return s?(Math.round(s*100)/100).toString().replace('.',','):'0';
+}
+function _tpRecalc(rowId){
+  const c1=document.getElementById('tpr-'+rowId+'-c1');
+  const c2=document.getElementById('tpr-'+rowId+'-c2');
+  const c3=document.getElementById('tpr-'+rowId+'-c3');
+  const tot=document.getElementById('tpr-'+rowId+'-tot');
+  if(!tot)return;
+  tot.textContent=_tpSum({c1:c1?c1.value:'',c2:c2?c2.value:'',c3:c3?c3.value:''});
+}
+
+function _collectTitlePageFromModal(){
+  const g=id=>{const e=document.getElementById(id);return e?e.value:'';};
+  const rows={};
+  TITLE_PAGE_ROWS.forEach(function(r){
+    if(r.type==='h')return;
+    const c1=g('tpr-'+r.id+'-c1'),c2=g('tpr-'+r.id+'-c2'),c3=g('tpr-'+r.id+'-c3');
+    if(c1===''&&c2===''&&c3==='')return;
+    rows[r.id]={c1:c1===''?null:parseFloat(c1),c2:c2===''?null:parseFloat(c2),c3:c3===''?null:parseFloat(c3)};
+  });
+  return {
+    school:g('tp-school'),subject:g('tp-subject'),dateText:g('tp-date'),village:g('tp-village'),
+    golova:g('tp-golova'),golovaDate:g('tp-golova-date'),dyr:g('tp-dyr'),dyrDate:g('tp-dyr-date'),
+    rows:rows
+  };
+}
+
+async function saveTitlePage(docId){
+  const data=_collectTitlePageFromModal();
+  const docs=await getCabDocs();
+  const doc=docs.find(d=>d.id===docId);
+  if(!doc){alert('Документ не знайдено.');return;}
+  doc.titlePage=data;
+  await setCabDocs(docs);
+  showSaveToast('✅ Титульну тарифікацію збережено','📁 Дані оновлено в кабінеті');
+}
+
+async function printTitlePage(docId){
+  const data=_collectTitlePageFromModal();
+  // одразу зберігаємо перед друком, щоб дані не загубились
+  const docs=await getCabDocs();
+  const doc=docs.find(d=>d.id===docId);
+  if(doc){doc.titlePage=data;await setCabDocs(docs);}
+  const html=renderTitlePageHTML(data);
+  const w=window.open('','_blank');
+  if(!w){alert('Дозвольте спливаючі вікна для перегляду документа.');return;}
+  w.document.write(html);w.document.close();
+}
+
+function renderTitlePageHTML(tp){
+  const rowsHtml=TITLE_PAGE_ROWS.map(function(r){
+    if(r.type==='h'){
+      return '<tr><td colspan="6" style="text-align:left;font-weight:700;background:#f2f2f2;">'+r.label+'</td></tr>';
+    }
+    const v=tp.rows[r.id]||{};
+    const c=n=>(n===null||n===undefined||n==='')?'':String(n).replace('.',',');
+    return '<tr><td>'+r.id+'</td><td style="text-align:left">'+r.label+'</td>'
+      +'<td>'+c(v.c1)+'</td><td>'+c(v.c2)+'</td><td>'+c(v.c3)+'</td><td><strong>'+_tpSum(v)+'</strong></td></tr>';
+  }).join('');
+  return `<!DOCTYPE html><html lang="uk"><head><meta charset="UTF-8">
+<title>Титульна тарифікація — ${tp.school||''}</title>
+<style>
+body{font-family:Arial,sans-serif;font-size:11px;padding:16px;}
+table{width:88%;max-width:920px;margin:10px auto 0;border-collapse:collapse;}
+th{background:#1d3a5a;color:#fff;padding:6px 4px;font-size:10px;text-align:center;border:1px solid #0e2a45;}
+td{padding:5px 4px;border:1px solid #ccc;text-align:center;font-size:10px;}
+.approve{display:flex;justify-content:space-between;font-size:9.5px;margin-bottom:18px;}
+.approve div{width:48%;line-height:1.6;}
+.title-block{text-align:center;margin:10px 0 4px;font-size:13px;font-weight:700;white-space:pre-line;}
+.village{text-align:left;font-size:11px;margin-bottom:10px;}
+@media print{@page{size:A4 landscape;margin:10mm;} .no-print{display:none!important;}}
+.no-print{position:sticky;top:0;background:#fff;padding:10px 0;display:flex;gap:8px;justify-content:center;z-index:10;border-bottom:2px solid #1d3a5a;margin-bottom:10px;}
+.no-print button{font-family:Arial,sans-serif;font-size:13px;font-weight:700;padding:.5rem 1.1rem;border-radius:8px;cursor:pointer;border:none;}
+.btn-print{background:#1d3a5a;color:#fff;}
+.btn-edit{background:#e8a120;color:#fff;}
+.btn-close{background:#eee;color:#333;border:1px solid #ccc!important;}
+</style></head><body>
+<div class="no-print">
+  <button class="btn-print" onclick="window.print()">🖨️ Друкувати</button>
+  <button class="btn-edit" onclick="window.opener&&window.opener.focus();window.close();">✏️ Внести зміни (повернутись до тарифікації)</button>
+  <button class="btn-close" onclick="window.close()">✕ Закрити</button>
+</div>
+<div class="approve">
+  <div>ПОГОДЖУЮ<br>Голова трудового колективу<br>____________________ / ${tp.golova||''} /<br>"${tp.golovaDate?_fmtDateUA(tp.golovaDate):'___'}"</div>
+  <div style="text-align:right;">ЗАТВЕРДЖУЮ<br>Директор<br>____________________ / ${tp.dyr||''} /<br>"${tp.dyrDate?_fmtDateUA(tp.dyrDate):'___'}"</div>
+</div>
+<div class="title-block">Тарифікаційний список ${tp.subject||''}
+${tp.school||''}
+на ${tp.dateText||''}</div>
+<div class="village">${tp.village?('с. '+tp.village):''}</div>
+<table>
+<thead><tr><th>№</th><th style="text-align:left">Показники на початок навчального року</th><th>І–ІV</th><th>V–ІX</th><th>X–XI</th><th>РАЗОМ</th></tr></thead>
+<tbody>${rowsHtml}</tbody>
+</table>
+</body></html>`;
+}
+
+// ── Перегляд КОМПЛЕКСНОГО документа (всі категорії на одну дату) ──
+// Показує модалку з окремою кнопкою друку для кожної збереженої
+// тарифікації (тільки для тих категорій, де щось введено).
+function viewBundleDoc(doc){
+  var old=document.getElementById('bundle-view-modal');if(old)old.remove();
+  const order=['teachers','kerivnyky','pedpers','spetsialisty','bibliotekar','med','rob'];
+  const cats=doc.categories||{};
+  const ids=Object.keys(cats).sort(function(a,b){
+    var ia=order.indexOf(a);if(ia<0)ia=99;
+    var ib=order.indexOf(b);if(ib<0)ib=99;
+    return ia-ib;
+  });
+  if(!ids.length){alert('У цьому документі немає збережених тарифікацій.');return;}
+
+  const titlePageBtn='<button class="btn btn-prim" style="width:100%;margin-bottom:.5rem;text-align:left;justify-content:flex-start;background:#1a4a2e;" onclick="showTitlePageModal(\''+doc.id+'\')">'
+    +'📋 Титульна тарифікація <span style="opacity:.75;font-weight:400;">(редагована сторінка)</span></button>';
+
+  const btnsHtml=titlePageBtn+ids.map(function(id){
+    const cat=cats[id];
+    const cnt=(cat.people||[]).length;
+    return '<button class="btn btn-prim" style="width:100%;margin-bottom:.5rem;text-align:left;justify-content:flex-start;" onclick="printBundleCategory(\''+doc.id+'\',\''+id+'\')">'
+      +'🖨️ '+cat.label+' <span style="opacity:.75;font-weight:400;">('+cnt+' '+uaPlural(cnt,'особа','особи','осіб')+(cat.date&&cat.date!==doc.date?' · '+_fmtDateUA(cat.date):'')+')</span></button>';
+  }).join('');
+
+  let issues='';
+  if(doc.missingCategories&&doc.missingCategories.length){
+    issues+='<div style="font-size:.78rem;color:#c0392b;margin-top:.75rem;">❌ Не введено даних: '+doc.missingCategories.join(', ')+'</div>';
+  }
+  if(doc.dateMismatchCategories&&doc.dateMismatchCategories.length){
+    issues+='<div style="font-size:.78rem;color:#8b6914;margin-top:.35rem;">📅 Некоректна дата тарифікації: '+doc.dateMismatchCategories.join(', ')+'</div>';
+  }
+
+  const html='<div id="bundle-view-modal" style="position:fixed;inset:0;background:rgba(14,26,43,.6);z-index:5000;display:flex;align-items:center;justify-content:center;padding:1rem;" onclick="if(event.target===this)this.remove();">'
+    +'<div style="background:#fff;border-radius:14px;padding:1.5rem;max-width:440px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.3);max-height:85vh;overflow:auto;">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;">'
+    +'<div style="font-family:Unbounded,sans-serif;font-size:.95rem;font-weight:700;color:#0e1a2b;">🖨️ '+doc.title+'</div>'
+    +'<button onclick="document.getElementById(\'bundle-view-modal\').remove()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888;">✕</button>'
+    +'</div>'
+    +'<div style="font-size:.78rem;color:#6b7a8d;margin-bottom:1rem;">Дата тарифікації: '+_fmtDateUA(doc.date)+' · Оберіть, яку тарифікацію роздрукувати:</div>'
+    +btnsHtml
+    +issues
+    +'</div></div>';
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+
+// ── Друк ОДНІЄЇ категорії з комплексного документа ──
+async function printBundleCategory(docId,catId){
+  const docs=await getCabDocs();
+  const doc=docs.find(function(d){return d.id===docId;});
+  if(!doc||!doc.categories||!doc.categories[catId]){alert('Дані не знайдено.');return;}
+  const cat=doc.categories[catId];
+  const info=window.instInfo||{};
+  const school=doc.school||info.name||'Заклад освіти';
+  const year=doc.year||info.year||'';
+  const dir=(doc.data&&doc.data.dir)||info.dir||'';
+  let html;
+  if(catId==='teachers'){
+    const rows=buildRowsFromSavedTeachers(cat.people||[]);
+    html=renderTarifTableHTML(rows,school,year,dir,cat.date||doc.date,false);
+  } else {
+    html=renderFCTableHTML(cat.people||[],school,year,dir,cat.date||doc.date,cat.label||'',false);
+  }
+  const w=window.open('','_blank');
+  if(!w){alert('Дозвольте спливаючі вікна для перегляду документа.');return;}
+  w.document.write(html);w.document.close();
+}
+
 // ── Перегляд збереженого документа: повна друкована таблиця ──
 // (готова до друку, з кнопками "Друкувати" та "Внести зміни")
 function viewSavedDoc(doc){
+  if(doc.bundle&&doc.categories){viewBundleDoc(doc);return;}
   const info=window.instInfo||{};
   const school=doc.school||info.name||'Заклад освіти';
   const year=doc.year||info.year||'';
@@ -5509,13 +6131,32 @@ function viewSavedDoc(doc){
 
   let html;
   if(doc.category&&doc.category!=='teachers'){
-    // Інша категорія (Адміністрація, Спеціалісти тощо) — простіша таблиця
     html=renderFCTableHTML(doc.data&&doc.data.people||[],school,year,dir,tarDate,doc.categoryLabel||'',false);
   } else {
     const teachers=(doc.data&&doc.data.teachers)||[];
     const rows=buildRowsFromSavedTeachers(teachers);
     html=renderTarifTableHTML(rows,school,year,dir,tarDate,false);
   }
+
+  // Якщо це документ «Зміни» — підміняємо заголовок
+  if(doc.isAmendment){
+    const isTeachers=!doc.category||doc.category==='teachers';
+    const titleText='ЗМІНИ ДО ТАРИФІКАЦІЙНОГО СПИСКУ'
+      +(isTeachers?' ПЕДАГОГІЧНИХ ПРАЦІВНИКІВ'
+        :doc.categoryLabel?' ('+doc.categoryLabel.toUpperCase()+')':'');
+    const amdTitleBlock='<div style="text-align:center;margin-bottom:6px;">'
+      +'<div style="display:inline-block;border:2px solid #1d3a5a;padding:6px 18px;border-radius:4px;">'
+      +'<h2 style="font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;margin:0;">'+titleText+'</h2>'
+      +'</div></div>';
+    const amdSubBlock='<div class="sub" id="doc-main-sub">'+school+' · Навчальний рік '+year+' · Дата змін: '+tarDate+'</div>';
+    html=html.replace(/<h2 id="doc-main-title">[^<]*<\/h2>/,amdTitleBlock);
+    html=html.replace(/<div class="sub" id="doc-main-sub">[^<]*<\/div>/,amdSubBlock);
+    if(doc.reason){
+      const reasonBlock='<div style="text-align:center;font-style:italic;font-size:9px;margin-bottom:8px;color:#333;font-weight:600;">'+doc.reason+'</div>';
+      html=html.replace('<table>',reasonBlock+'<table>');
+    }
+  }
+
   const w=window.open('','_blank');
   if(!w){alert('Дозвольте спливаючі вікна для перегляду документа.');return;}
   w.document.write(html);w.document.close();
@@ -5542,7 +6183,7 @@ function exportFCPDF(tabId){
   });
   const html=renderFCTableHTML(people,school,year,dir,tarDate,categoryLabel,'pdf');
   const filename='Тарифікація_'+categoryLabel.replace(/[\\/:*?"<>|]/g,'')+'_'+year.replace(/[\\/:*?"<>|]/g,'')+'.pdf';
-  downloadHtmlAsPdf(html,filename,'portrait');
+  downloadHtmlAsPdf(html,filename,'landscape');
 }
 
 function renderFCTableHTML(people,school,year,dir,tarDate,categoryLabel,autoprint){
@@ -5555,12 +6196,12 @@ body{font-family:Arial,sans-serif;font-size:11px;padding:14px;}
 h2{font-size:13px;text-align:center;margin-bottom:2px;}
 .sub{text-align:center;font-size:10px;color:#555;margin-bottom:12px;}
 table{width:100%;border-collapse:collapse;}
-th{background:#1d3a5a;color:#fff;padding:5px;font-size:9.5px;text-align:center;}
+th{background:#1d3a5a;color:#fff;padding:5px;font-size:9.5px;text-align:center;border:1px solid #0e2a45;}
 td{padding:5px;border:1px solid #ccc;text-align:center;font-size:10px;}
 tr:nth-child(even) td{background:#f7f7f7;}
 .tf td{background:#1d3a5a!important;color:#fff;font-weight:bold;}
 .sig{margin-top:24px;display:flex;justify-content:space-between;font-size:10px;}
-@media print{@page{size:A4 portrait;margin:10mm;} .no-print{display:none!important;}}
+@media print{@page{size:A4 landscape;margin:10mm;} .no-print{display:none!important;}}
 .no-print{position:sticky;top:0;background:#fff;padding:10px 0;display:flex;gap:8px;justify-content:center;z-index:10;border-bottom:2px solid #1d3a5a;margin-bottom:10px;}
 .no-print button{font-family:Arial,sans-serif;font-size:13px;font-weight:700;padding:.5rem 1.1rem;border-radius:8px;cursor:pointer;border:none;}
 .btn-print{background:#1d3a5a;color:#fff;}
@@ -5572,8 +6213,8 @@ ${(autoprint||autoprint==='pdf')?'':`<div class="no-print">
   <button class="btn-edit" onclick="window.opener&&window.opener.focus();window.close();">✏️ Внести зміни (повернутись до тарифікації)</button>
   <button class="btn-close" onclick="window.close()">✕ Закрити</button>
 </div>`}
-<h2>ТАРИФІКАЦІЙНА ВІДОМІСТЬ${categoryLabel?' — '+categoryLabel.toUpperCase():''}</h2>
-<div class="sub">${school} · Навчальний рік ${year} · Дата тарифікації: ${tarDate}</div>
+<h2 id="doc-main-title">ТАРИФІКАЦІЙНА ВІДОМІСТЬ${categoryLabel?' — '+categoryLabel.toUpperCase():''}</h2>
+<div class="sub" id="doc-main-sub">${school} · Навчальний рік ${year} · Дата тарифікації: ${tarDate}</div>
 <table>
 <thead><tr><th>№</th><th>ПІБ</th><th>Посада</th><th>Ставки</th><th>Розряд</th><th>Оклад грн</th><th>РАЗОМ грн</th></tr></thead>
 <tbody>
@@ -5642,8 +6283,70 @@ async function openDoc(id){
     return;
   }
 
+  if(doc.bundle&&doc.categories){
+    if(!confirm('Відкрити «'+doc.title+'»?\n\nПоточні незбережені дані ВСІХ тарифікацій будуть замінені.'))return;
+
+    if(doc.instType&&doc.instType!==curInstType){
+      await selInst(doc.instType,{classList:{add(){},remove(){}}});
+    }
+
+    const cats=doc.categories;
+
+    // Вчителів готуємо через 'tp4' і повну перебудову вкладок —
+    // так само, як для одиночного документа вчителів.
+    if(cats.teachers){
+      try{
+        localStorage.setItem('tp4',JSON.stringify({
+          school:doc.school,edrpou:(doc.data&&doc.data.edrpou)||'',dir:(doc.data&&doc.data.dir)||'',
+          year:doc.year,date:cats.teachers.date||doc.date,teachers:cats.teachers.people||[]
+        }));
+      }catch(e){}
+    }
+
+    var barEl3=document.getElementById('fixed-tabs');
+    var contEl3=document.getElementById('fixed-tab-content');
+    var cardsEl3=document.getElementById('menu-cards-grid');
+    if(barEl3)barEl3.innerHTML='';
+    if(contEl3)contEl3.innerHTML='';
+    if(cardsEl3)cardsEl3.innerHTML='';
+    fixedTabsBuilt=false;
+    openSection('tarif'); // будує DOM #teachers-list-tab та верхньорівневих вкладок
+    if(cats.teachers)loadData();
+
+    // Відновлюємо решту категорій (адміністрація, спеціалісти, бібліотека, тощо)
+    const catIds=Object.keys(cats);
+    for(const catId of catIds){
+      if(catId==='teachers')continue;
+      await openFCCategoryForEdit(catId); // гарантує наявність flist-<id>
+      const list=document.getElementById('flist-'+catId);
+      if(list){
+        list.querySelectorAll('.fc').forEach(sec=>sec.remove());
+        (cats[catId].people||[]).forEach(p=>{
+          addFC(catId);
+          const cardsArr=list.querySelectorAll('.fc');
+          const sec=cardsArr[cardsArr.length-1];
+          if(sec)applyFCData(sec,p);
+        });
+        refreshFCFilterCount(catId);
+      }
+      tarifDates[catId]=cats[catId].date||doc.date;
+    }
+    if(cats.teachers)tarifDates['teachers']=cats.teachers.date||doc.date;
+    saveTarifDates();
+    saveFCAll();
+    _currentOpenDocId=doc.id; // подальше збереження без зміни дати замінить саме цей документ
+
+    // Повертаємось на вкладку вчителів (або першу наявну категорію)
+    const backTo=cats.teachers?'teachers':catIds[0];
+    if(backTo)await openFCCategoryForEdit(backTo);
+
+    showSaveToast('✅ Тарифікацію на '+_fmtDateUA(doc.date)+' відкрито','Усі збережені категорії завантажено');
+    return;
+  }
+
   if(doc.category&&doc.category!=='teachers'){
     if(!confirm('Відкрити «'+doc.title+'»?\n\nПоточні незбережені дані вкладки «'+(doc.categoryLabel||doc.category)+'» будуть замінені.'))return;
+    _currentOpenDocId=null; // це не "пакетний" документ — не пов'язуємо з ним подальші збереження
 
     if(doc.instType&&doc.instType!==curInstType){
       await selInst(doc.instType,{classList:{add(){},remove(){}}});
@@ -5664,24 +6367,33 @@ async function openDoc(id){
         applyFCData(sec,p);
       });
       refreshFCFilterCount(doc.category);
+      // Зберегти в localStorage щоб не пропало при перемиканні вкладок
+      saveFCAll();
     }
     if(doc.date)tarifDates[doc.category]=doc.date;
     return;
   }
 
   if(!confirm('Відкрити «'+doc.title+'»?\n\nПоточні незбережені дані тарифікації будуть замінені.'))return;
+  _currentOpenDocId=null; // це не "пакетний" документ — не пов'язуємо з ним подальші збереження
   try{localStorage.setItem('tp4',JSON.stringify(doc.data));}catch(e){}
 
   if(doc.instType&&doc.instType!==curInstType){
-    // Заклад інший (або ще не обраний) — обираємо його, дочекавшись повної
-    // перебудови сторінки (selInst -> startWork -> buildMenuPage), і лише
-    // після цього відкриваємо вкладку тарифікації та підвантажуємо дані.
     await selInst(doc.instType,{classList:{add(){},remove(){}}});
   }
+  // Примусово перебудувати DOM вкладок, щоб завантажити нові дані вчителів
+  var barEl2=document.getElementById('fixed-tabs');
+  var contEl2=document.getElementById('fixed-tab-content');
+  var cardsEl2=document.getElementById('menu-cards-grid');
+  if(barEl2)barEl2.innerHTML='';
+  if(contEl2)contEl2.innerHTML='';
+  if(cardsEl2)cardsEl2.innerHTML='';
+  fixedTabsBuilt=false;
   // Відкриваємо саму вкладку "Тарифікація" — це будує DOM для #teachers-list-tab
   openSection('tarif');
   // DOM вкладки вчителів щойно створений — тепер дані є куди підставляти
   loadData();
+  // FC-дані вже відновлені через loadFCAll() в buildFixedTabs — нічого додатково не потрібно
 }
 
 async function deleteDoc(id){
@@ -5695,12 +6407,14 @@ async function deleteDoc(id){
 
 // ── Допоміжна: визначити ключ місяця (РРРР-ММ) з документа ──
 function _docMonthKey(doc){
-  // savedAt може бути "28.09.2025, 14:30" або ISO рядок
-  if(doc.monthKey)return doc.monthKey;
-  if(doc.savedAt){
-    const m=doc.savedAt.match(/(\d{2})\.(\d{2})\.(\d{4})/);
+  // Пріоритет: дата дії документа (doc.date), потім savedAt
+  const src=doc.date||doc.savedAt||'';
+  if(src){
+    // Формат dd.mm.yyyy або dd.mm.yyyy, hh:mm
+    const m=src.match(/(\d{2})\.(\d{2})\.(\d{4})/);
     if(m)return m[3]+'-'+m[2];
-    const d=new Date(doc.savedAt);
+    // ISO формат
+    const d=new Date(src);
     if(!isNaN(d))return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
   }
   return 'невідомо';
@@ -5771,10 +6485,14 @@ async function renderDocList(){
         <div class="doc-info">
           <div>
             <span class="doc-type-badge ${tClass[doc.type]||'badge-tarif'}">${tLabel[doc.type]||'📄 Документ'}</span>
+            ${doc.bundle?'<span class="doc-type-badge" style="background:#eee6fa;color:#5a3a8b;margin-left:.3rem;">📦 Комплект</span>':''}
             ${doc.auto?'<span class="doc-type-badge" style="background:#e0e8f0;color:#5a6b7d;margin-left:.3rem;">🔄 Авто</span>':''}
           </div>
           <div class="doc-title">${doc.title}</div>
-          <div class="doc-meta">📅 ${doc.savedAt||'—'} &nbsp;·&nbsp; 🏫 ${doc.school||'—'}</div>
+          <div class="doc-meta">📅 ${doc.savedAt||'—'} &nbsp;·&nbsp; 🏫 ${doc.school||'—'}${doc.bundle?' &nbsp;·&nbsp; 🗓️ Дата тарифікації: '+_fmtDateUA(doc.date):''}</div>
+          ${doc.bundle&&doc.categories?`<div class="doc-meta" style="color:#1a7a4a;">✅ ${Object.keys(doc.categories).map(cid=>doc.categories[cid].label).join(', ')}</div>`:''}
+          ${doc.bundle&&doc.missingCategories&&doc.missingCategories.length?`<div class="doc-meta" style="color:#c0392b;">❌ Без даних: ${doc.missingCategories.join(', ')}</div>`:''}
+          ${doc.bundle&&doc.dateMismatchCategories&&doc.dateMismatchCategories.length?`<div class="doc-meta" style="color:#8b6914;">📅 Невірна дата: ${doc.dateMismatchCategories.join(', ')}</div>`:''}
         </div>
         <div class="doc-actions">
           ${doc.type==='tarif'||doc.type==='tabel'||doc.type==='shtat'||doc.type==='kartky'
@@ -5789,11 +6507,11 @@ async function renderDocList(){
 
     return `<div class="cab-month-folder">
       <div class="cab-month-header" onclick="toggleCabFolder('cf-${key}')">
-        <span class="cab-month-arrow" id="cfa-${key}">▼</span>
+        <span class="cab-month-arrow" id="cfa-${key}">▶</span>
         <span class="cab-month-title">📁 ${_monthLabel(key)}</span>
         <span class="cab-month-count">${docsInGroup.length} докум.</span>
       </div>
-      <div class="cab-month-body" id="cf-${key}">${items}</div>
+      <div class="cab-month-body" id="cf-${key}" style="display:none;">${items}</div>
     </div>`;
   }).join('');
 }
@@ -5956,7 +6674,8 @@ async function compareDoc(id){
   });
 
   // "Було" — дані зі збереженого документа (рахуємо окремо, не зачіпаючи поточну тарифікацію)
-  const previous=calcTotalsFromSavedTeachers(doc.data.teachers||[]);
+  const prevTeachers=(doc.bundle&&doc.categories)?((doc.categories.teachers&&doc.categories.teachers.people)||[]):(doc.data.teachers||[]);
+  const previous=calcTotalsFromSavedTeachers(prevTeachers);
 
   renderComparison(doc,previous,current);
 }
@@ -6202,10 +6921,11 @@ function renderEmployeeCards(){
     const fio=(e.last+' '+e.first).trim();
     const birthStr=p.birthdate?formatEmpDate(p.birthdate):'';
     const ageStr=p.birthdate?(' ('+calcAge(p.birthdate)+' р.)'):'';
-    const exactStazhStr=p.stazhStart?formatExactStazh(p.stazhStart):'';
+    // Стаж — новий формат або старий
+    const exactStazhStr=p.stazh?_empFormatStazhDisplay(p.stazh):(p.stazhStart?formatExactStazh(p.stazhStart):'');
 
     const badges=[];
-    if(e.sumisnyk)badges.push('<span class="emp-flag sumisnyk">Сумісник</span>');
+    if(e.sumisnyk||p.sumisnyk)badges.push('<span class="emp-flag sumisnyk">Сумісник'+(p.sumisnykPos?' · '+escEmpHtml(p.sumisnykPos):'')+'</span>');
     if(p.invalid)badges.push('<span class="emp-flag invalid">Інвалідність'+(p.invalidGroup?' '+p.invalidGroup+' гр.':'')+'</span>');
     if(p.pension)badges.push('<span class="emp-flag pension">Пенсіонер'+(p.pensionType?' ('+p.pensionType+')':'')+'</span>');
 
@@ -6220,9 +6940,10 @@ function renderEmployeeCards(){
       +(e.stavky?'<div class="emp-field-row"><span class="emp-field-label">Ставка</span>'+fv(e.stavky+' ст.')+'</div>':'')
       +'<div class="emp-field-row"><span class="emp-field-label">Стаж (тарифікація)</span>'+fv((e.stazh||'0')+' р.')+'</div>'
       +'<div class="emp-field-row"><span class="emp-field-label">Стаж на сьогодні</span>'+fv(exactStazhStr)+'</div>'
+      +(p.orderPos?'<div class="emp-field-row"><span class="emp-field-label">Посада (призначення)</span>'+fv(p.orderPos)+'</div>':'')
+      +(p.order?'<div class="emp-field-row"><span class="emp-field-label">Наказ про призначення</span>'+fv(p.order)+'</div>':'')
       +'<div class="emp-field-row"><span class="emp-field-label">Сімейний стан</span>'+fv(p.family)+'</div>'
       +'<div class="emp-field-row"><span class="emp-field-label">Дата народження</span>'+fv(birthStr?birthStr+ageStr:'')+'</div>'
-      +'<div class="emp-field-row"><span class="emp-field-label">Призначення</span>'+fv(p.order)+'</div>'
       +(badges.length?'<div class="emp-badges">'+badges.join('')+'</div>':'')
       +'</div>';
   }).join('');
@@ -6277,6 +6998,114 @@ function uaPlural(n,one,few,many){
 }
 
 // ── Модальне вікно редагування особистих даних картки ──
+let _empStazhMode='manual'; // 'manual' | 'single' | 'periods'
+let _empStazhPeriods=[]; // [{from:'2010-09-01',to:'2015-06-30'}]
+
+function setEmpStazhMode(mode){
+  _empStazhMode=mode;
+  document.querySelectorAll('.emp-stazh-mode-btn').forEach(b=>{
+    b.classList.toggle('active',b.dataset.mode===mode);
+  });
+  document.getElementById('emp-stazh-manual-wrap').style.display=mode==='manual'?'':'none';
+  document.getElementById('emp-stazh-single-wrap').style.display=mode==='single'?'':'none';
+  document.getElementById('emp-stazh-periods-wrap').style.display=mode==='periods'?'':'none';
+  updateEmpStazhPreview();
+}
+
+function addEmpStazhPeriod(from,to){
+  _empStazhPeriods.push({from:from||'',to:to||''});
+  renderEmpStazhPeriods();
+}
+
+function renderEmpStazhPeriods(){
+  const list=document.getElementById('emp-stazh-periods-list');
+  if(!list)return;
+  list.innerHTML=_empStazhPeriods.map((p,i)=>`
+    <div class="emp-stazh-period-row">
+      <span style="font-size:.75rem;color:var(--mu);min-width:16px;">${i+1}.</span>
+      <input type="date" value="${p.from||''}" onchange="_empStazhPeriods[${i}].from=this.value;updateEmpStazhPreview();" title="Початок роботи">
+      <span style="font-size:.78rem;color:var(--mu);">—</span>
+      <input type="date" value="${p.to||''}" onchange="_empStazhPeriods[${i}].to=this.value;updateEmpStazhPreview();" title="Кінець роботи (залиш порожнім якщо досі)">
+      <span class="pdur" id="pdur-${i}"></span>
+      <button type="button" onclick="_empStazhPeriods.splice(${i},1);renderEmpStazhPeriods();updateEmpStazhPreview();" style="background:none;border:none;color:#c0392b;cursor:pointer;font-size:.9rem;padding:0 .2rem;">✕</button>
+    </div>`).join('');
+  updateEmpStazhPreview();
+}
+
+function calcPeriodsTotal(){
+  let totalMonths=0;
+  _empStazhPeriods.forEach((p,i)=>{
+    if(!p.from)return;
+    const from=new Date(p.from);
+    const to=p.to?new Date(p.to):new Date();
+    if(isNaN(from.getTime())||isNaN(to.getTime())||to<from)return;
+    let y=to.getFullYear()-from.getFullYear();
+    let m=to.getMonth()-from.getMonth();
+    if(to.getDate()<from.getDate())m--;
+    if(m<0){y--;m+=12;}
+    const months=y*12+m;
+    totalMonths+=months;
+    const dur=document.getElementById('pdur-'+i);
+    if(dur){const yy=Math.floor(months/12);const mm=months%12;dur.textContent=(yy?yy+'р.':'')+(mm?' '+mm+'м.':'');}
+  });
+  return totalMonths;
+}
+
+function updateEmpStazhPreview(){
+  if(_empStazhMode==='single'){
+    const startEl=document.getElementById('emp-f-stazh-start');
+    const previewEl=document.getElementById('emp-f-stazh-preview');
+    if(startEl&&previewEl)previewEl.value=formatExactStazh(startEl.value)||'—';
+  } else if(_empStazhMode==='periods'){
+    const total=calcPeriodsTotal();
+    const yy=Math.floor(total/12);const mm=total%12;
+    const str=total>0?(yy+' '+uaPlural(yy,'рік','роки','років')+(mm?' '+mm+' '+uaPlural(mm,'місяць','місяці','місяців'):'')):'—';
+    const totEl=document.getElementById('emp-stazh-periods-total');
+    if(totEl)totEl.textContent='Загальний стаж: '+str;
+  } else {
+    const y=parseInt(document.getElementById('emp-f-stazh-years')?.value)||0;
+    const m=parseInt(document.getElementById('emp-f-stazh-months')?.value)||0;
+    const pr=document.getElementById('emp-f-stazh-manual-preview');
+    if(pr)pr.textContent=(y||m)?(y+' '+uaPlural(y,'рік','роки','років')+(m?' '+m+' '+uaPlural(m,'місяць','місяці','місяців'):'')):'';
+  }
+}
+
+function _empGetStazhResult(){
+  // Повертає {mode, years, months, stazhStart, periods}
+  if(_empStazhMode==='single'){
+    const start=document.getElementById('emp-f-stazh-start')?.value||'';
+    const s=calcExactStazh(start);
+    return {mode:'single',stazhStart:start,years:s?s.years:0,months:s?s.months:0,periods:[]};
+  } else if(_empStazhMode==='periods'){
+    const total=calcPeriodsTotal();
+    return {mode:'periods',stazhStart:'',years:Math.floor(total/12),months:total%12,periods:[..._empStazhPeriods]};
+  } else {
+    const y=parseInt(document.getElementById('emp-f-stazh-years')?.value)||0;
+    const m=parseInt(document.getElementById('emp-f-stazh-months')?.value)||0;
+    return {mode:'manual',stazhStart:'',years:y,months:m,periods:[]};
+  }
+}
+
+function _empFormatStazhDisplay(p){
+  if(!p)return '';
+  if(p.mode==='single'&&p.stazhStart)return formatExactStazh(p.stazhStart);
+  if(p.mode==='periods'&&p.periods?.length){
+    let total=0;
+    p.periods.forEach(pr=>{
+      if(!pr.from)return;
+      const from=new Date(pr.from);const to=pr.to?new Date(pr.to):new Date();
+      if(isNaN(from.getTime())||isNaN(to.getTime())||to<from)return;
+      let y2=to.getFullYear()-from.getFullYear();let m2=to.getMonth()-from.getMonth();
+      if(to.getDate()<from.getDate())m2--;if(m2<0){y2--;m2+=12;}
+      total+=y2*12+m2;
+    });
+    const yy=Math.floor(total/12);const mm=total%12;
+    return yy+' '+uaPlural(yy,'рік','роки','років')+(mm?' '+mm+' '+uaPlural(mm,'місяць','місяці','місяців'):'');
+  }
+  const y=p.years||0;const m=p.months||0;
+  return (y||m)?(y+' '+uaPlural(y,'рік','роки','років')+(m?' '+m+' '+uaPlural(m,'місяць','місяці','місяців'):'')):'';
+}
+
 function openEmpModal(key){
   const e=empCardsCache.find(x=>x.key===key);
   if(!e)return;
@@ -6286,13 +7115,30 @@ function openEmpModal(key){
   document.getElementById('emp-f-family').value=p.family||'';
   document.getElementById('emp-f-birthdate').value=p.birthdate||'';
   document.getElementById('emp-f-order').value=p.order||'';
-  document.getElementById('emp-f-stazh-start').value=p.stazhStart||'';
+  document.getElementById('emp-f-order-pos').value=p.orderPos||'';
+  const sumisnykChk=document.getElementById('emp-f-sumisnyk-chk');
+  const sumisnykWrap=document.getElementById('emp-f-sumisnyk-pos-wrap');
+  if(sumisnykChk){sumisnykChk.checked=!!p.sumisnyk;if(sumisnykWrap)sumisnykWrap.style.display=p.sumisnyk?'':'none';}
+  document.getElementById('emp-f-sumisnyk-pos').value=p.sumisnykPos||'';
   document.getElementById('emp-f-invalid').checked=!!p.invalid;
   document.getElementById('emp-f-invalid-group').value=p.invalidGroup||'1';
   document.getElementById('emp-f-invalid-group-wrap').style.display=p.invalid?'':'none';
   document.getElementById('emp-f-pension').checked=!!p.pension;
   document.getElementById('emp-f-pension-type').value=p.pensionType||'за віком';
   document.getElementById('emp-f-pension-type-wrap').style.display=p.pension?'':'none';
+
+  // Відновити режим стажу
+  const mode=p.stazh?.mode||'manual';
+  _empStazhPeriods=(p.stazh?.periods||[]).map(x=>({...x}));
+  setEmpStazhMode(mode);
+  if(mode==='manual'){
+    document.getElementById('emp-f-stazh-years').value=p.stazh?.years||0;
+    document.getElementById('emp-f-stazh-months').value=p.stazh?.months||0;
+  } else if(mode==='single'){
+    document.getElementById('emp-f-stazh-start').value=p.stazh?.stazhStart||p.stazhStart||'';
+  } else if(mode==='periods'){
+    renderEmpStazhPeriods();
+  }
 
   document.getElementById('emp-f-invalid').onchange=function(){
     document.getElementById('emp-f-invalid-group-wrap').style.display=this.checked?'':'none';
@@ -6304,24 +7150,25 @@ function openEmpModal(key){
   updateEmpStazhPreview();
   document.getElementById('emp-modal-overlay').classList.add('show');
 }
-function updateEmpStazhPreview(){
-  const startEl=document.getElementById('emp-f-stazh-start');
-  const previewEl=document.getElementById('emp-f-stazh-preview');
-  if(!startEl||!previewEl)return;
-  const text=formatExactStazh(startEl.value);
-  previewEl.value=text||'—';
-}
+
 function closeEmpModal(){
   document.getElementById('emp-modal-overlay').classList.remove('show');
 }
+
 function saveEmpModal(){
   const key=document.getElementById('emp-modal-key').value;
   if(!key)return;
+  const stazhResult=_empGetStazhResult();
   empPersonalData[key]={
     family:document.getElementById('emp-f-family').value,
     birthdate:document.getElementById('emp-f-birthdate').value,
     order:document.getElementById('emp-f-order').value,
-    stazhStart:document.getElementById('emp-f-stazh-start').value,
+    orderPos:document.getElementById('emp-f-order-pos').value,
+    sumisnyk:document.getElementById('emp-f-sumisnyk-chk').checked,
+    sumisnykPos:document.getElementById('emp-f-sumisnyk-pos').value,
+    // Зворотна сумісність — зберігаємо stazhStart для старого коду
+    stazhStart:stazhResult.mode==='single'?stazhResult.stazhStart:'',
+    stazh:stazhResult,
     invalid:document.getElementById('emp-f-invalid').checked,
     invalidGroup:document.getElementById('emp-f-invalid-group').value,
     pension:document.getElementById('emp-f-pension').checked,
@@ -6436,8 +7283,9 @@ function dismissStazhAlert(key,threshold){
 // ── Зберегти в кабінет або показати модал підписки ──
 function cabSaveOrSubscribe(category){
   if(_cabCryptoKey){
-    // Залогінений — зберігаємо в кабінет
-    saveCurrentDoc(category||'teachers');
+    // Залогінений — зберігаємо ОДИН файл з усіма тарифікаціями на дату
+    // поточної сторінки (вчителі/адміністрація/спеціалісти і т.д.)
+    saveAllToCabinet(category||'teachers');
   } else {
     // Не залогінений — показуємо модал підписки
     showSubscribeModal();
@@ -6452,13 +7300,35 @@ let _amdDoc=null; // поточний документ для змін
 
 async function openDocAmendment(id){
   const docs=await getCabDocs();
-  const doc=docs.find(d=>d.id===id);
-  if(!doc||!doc.data){alert('Документ не знайдено.');return;}
+  let doc=docs.find(d=>d.id===id);
+  if(!doc||(!doc.data&&!doc.categories)){alert('Документ не знайдено.');return;}
+
+  // Комплексний документ (усі категорії на дату) — просимо обрати,
+  // до якої саме тарифікації вносити зміни.
+  if(doc.bundle&&doc.categories){
+    const ids=Object.keys(doc.categories);
+    let chosenId=ids[0];
+    if(ids.length>1){
+      const listTxt=ids.map(function(cid,i){return (i+1)+'. '+doc.categories[cid].label;}).join('\n');
+      const ans=prompt('Цей документ містить кілька тарифікацій.\nОберіть номер тарифікації, до якої вносите зміни:\n\n'+listTxt,'1');
+      if(ans===null)return;
+      const idx=parseInt(ans,10)-1;
+      if(idx>=0&&idx<ids.length)chosenId=ids[idx];
+    }
+    const cat=doc.categories[chosenId];
+    doc=Object.assign({},doc,{
+      category:chosenId,
+      categoryLabel:cat.label,
+      data:chosenId==='teachers'
+        ?Object.assign({},doc.data,{teachers:cat.people})
+        :Object.assign({},doc.data,{category:chosenId,categoryLabel:cat.label,people:cat.people})
+    });
+  }
   _amdDoc=doc;
 
   // Заголовок
   document.getElementById('amd-source-label').textContent=
-    'Джерело: «'+doc.title+'» · '+doc.school+' · '+doc.year;
+    'Джерело: «'+doc.title+'»'+(doc.categoryLabel?' · '+doc.categoryLabel:'')+' · '+doc.school+' · '+doc.year;
 
   // Дата — сьогодні за замовчуванням
   const todayISO=new Date().toISOString().split('T')[0];
@@ -6488,34 +7358,94 @@ function selectAmdReason(btn,reason){
   if(reason!=='other')custom.value='';
 }
 
+let _amdPeople=[]; // кеш списку осіб для поточних змін
+
 function _amdBuildPeopleList(doc){
-  const list=document.getElementById('amd-people-list');
-  let people=[];
+  // Будуємо базовий список з документа
   if(doc.category==='teachers'||!doc.category){
-    people=(doc.data.teachers||[]).map(t=>({
+    _amdPeople=(doc.data.teachers||[]).map(t=>({
       id:t.id||t.last+t.first,
       name:((t.last||'')+' '+(t.first||'')+' '+(t.pat||'')).trim()||t.pib||'—',
       pos:t.pos||t.subj||'',
-      raw:t, fc:false
+      raw:t, fc:false, extra:false
     }));
   } else {
-    people=(doc.data.people||[]).map((p,i)=>({
+    _amdPeople=(doc.data.people||[]).map((p,i)=>({
       id:p.id||'fc'+i,
       name:p.pib||((p.last||'')+' '+(p.first||'')).trim()||'—',
       pos:p.pos||'',
-      raw:p, fc:true
+      raw:p, fc:true, extra:false
     }));
   }
+  _amdRenderPeopleList();
+}
 
-  list.innerHTML=people.length?people.map((p,i)=>`
+function _amdRenderPeopleList(){
+  const list=document.getElementById('amd-people-list');
+  if(!list)return;
+  const rows=_amdPeople.length?_amdPeople.map((p,i)=>`
     <div class="amd-person-row selected" id="amd-prow-${i}" onclick="amdTogglePerson(${i})">
       <input type="checkbox" id="amd-pchk-${i}" checked onclick="event.stopPropagation();amdTogglePerson(${i})">
-      <div>
-        <div class="amd-person-name">${p.name}</div>
-        <div class="amd-person-pos">${p.pos}</div>
+      <div style="flex:1;">
+        <div class="amd-person-name">${p.name}${p.extra?' <span style="font-size:.68rem;color:#1a7a4a;font-weight:700;">+ новий</span>':''}</div>
+        <div class="amd-person-pos">${p.pos||'—'}</div>
       </div>
+      ${p.extra?`<button type="button" onclick="event.stopPropagation();amdRemoveExtra(${i})" style="background:none;border:none;color:#c0392b;cursor:pointer;font-size:1rem;padding:0 .3rem;" title="Видалити">✕</button>`:''}
     </div>`).join('')
     :'<div style="color:#aaa;font-size:.82rem;padding:.5rem;">Список осіб порожній.</div>';
+
+  list.innerHTML=rows+`
+    <div style="padding:.5rem .3rem 0;">
+      <div id="amd-add-form" style="display:none;background:#f5f8fc;border:1.5px dashed #c8d4e0;border-radius:9px;padding:.75rem;margin-bottom:.5rem;">
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem;">
+          <input type="text" id="amd-new-name" placeholder="ПІБ працівника" style="font-family:'Manrope',sans-serif;font-size:.82rem;padding:.4rem .6rem;border-radius:7px;border:1.5px solid #c8d4e0;flex:2;min-width:140px;">
+          <input type="text" id="amd-new-pos" placeholder="Посада" style="font-family:'Manrope',sans-serif;font-size:.82rem;padding:.4rem .6rem;border-radius:7px;border:1.5px solid #c8d4e0;flex:1;min-width:100px;">
+        </div>
+        <div style="display:flex;gap:.4rem;">
+          <button type="button" onclick="amdConfirmAddPerson()" style="font-family:'Manrope',sans-serif;font-weight:700;font-size:.78rem;padding:.35rem .75rem;border-radius:7px;border:none;background:#1a7a4a;color:#fff;cursor:pointer;">✓ Додати</button>
+          <button type="button" onclick="amdCancelAddPerson()" style="font-family:'Manrope',sans-serif;font-size:.78rem;padding:.35rem .75rem;border-radius:7px;border:1.5px solid #c8d4e0;background:#fff;color:#6b7a8d;cursor:pointer;">Скасувати</button>
+        </div>
+      </div>
+      <button type="button" id="amd-add-btn" onclick="amdShowAddForm()" style="font-family:'Manrope',sans-serif;font-weight:700;font-size:.8rem;padding:.38rem .85rem;border-radius:8px;border:1.5px dashed #1a7a4a;background:#f0faf5;color:#1a7a4a;cursor:pointer;width:100%;">+ Додати працівника</button>
+    </div>`;
+}
+
+function amdShowAddForm(){
+  document.getElementById('amd-add-form').style.display='block';
+  document.getElementById('amd-add-btn').style.display='none';
+  setTimeout(()=>{const el=document.getElementById('amd-new-name');if(el)el.focus();},50);
+}
+
+function amdCancelAddPerson(){
+  document.getElementById('amd-add-form').style.display='none';
+  document.getElementById('amd-add-btn').style.display='block';
+  document.getElementById('amd-new-name').value='';
+  document.getElementById('amd-new-pos').value='';
+}
+
+function amdConfirmAddPerson(){
+  const name=(document.getElementById('amd-new-name').value||'').trim();
+  const pos=(document.getElementById('amd-new-pos').value||'').trim();
+  if(!name){document.getElementById('amd-new-name').focus();return;}
+  const isFC=_amdDoc&&_amdDoc.category&&_amdDoc.category!=='teachers';
+  const newPerson={
+    id:'extra_'+Date.now(),
+    name:name, pos:pos,
+    extra:true, fc:isFC,
+    raw: isFC
+      ?{pib:name,pos:pos,stavky:1,razr:1,total:0,oklad:0}
+      :{last:name,first:'',pat:'',pos:pos,pib:name}
+  };
+  _amdPeople.push(newPerson);
+  _amdRenderPeopleList();
+  // Новий запис вже вибраний — прокрутити вниз
+  const list=document.getElementById('amd-people-list');
+  if(list)list.scrollTop=list.scrollHeight;
+}
+
+function amdRemoveExtra(i){
+  _amdPeople.splice(i,1);
+  _amdRenderPeopleList();
 }
 
 function amdTogglePerson(i){
@@ -6539,7 +7469,7 @@ function _amdGetSelected(){
   const selected=[];
   document.querySelectorAll('.amd-person-row.selected').forEach(row=>{
     const i=parseInt(row.id.replace('amd-prow-',''));
-    selected.push(i);
+    if(!isNaN(i)&&_amdPeople[i])selected.push(i);
   });
   return selected;
 }
@@ -6562,55 +7492,37 @@ function _amdBuildHTML(selectedIndexes, newDate, reasonText, forPrint){
   const dir=(doc.data&&doc.data.dir)||info.dir||'';
   const isTeachers=doc.category==='teachers'||!doc.category;
 
-  const title='ЗМІНИ ДО ТАРИФІКАЦІЙНОГО СПИСКУ'
+  const titleText='ЗМІНИ ДО ТАРИФІКАЦІЙНОГО СПИСКУ'
     +(isTeachers?' ПЕДАГОГІЧНИХ ПРАЦІВНИКІВ'
       :doc.categoryLabel?' ('+doc.categoryLabel.toUpperCase()+')':'');
-  const subtitle=school+' · Навчальний рік '+year+' · Дата змін: '+newDate;
-  const reasonLine=reasonText?`<div class="rsn">${reasonText}</div>`:'';
+  const subtitleText=school+' · Навчальний рік '+year+' · Дата змін: '+newDate;
 
-  // Стиль заголовка змін — великий, жирний, з рамкою
-  const amdTitleBlock=`<div style="text-align:center;margin-bottom:6px;">
-    <div style="display:inline-block;border:2px solid #1d3a5a;padding:6px 18px;border-radius:4px;">
-      <h2 style="font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;margin:0;">${title}</h2>
-    </div>
-  </div>`;
-  const amdSubBlock=`<div class="sub">${subtitle}`;
+  const amdTitleBlock=`<div style="text-align:center;margin-bottom:6px;">`
+    +`<div style="display:inline-block;border:2px solid #1d3a5a;padding:6px 18px;border-radius:4px;">`
+    +`<h2 style="font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;margin:0;">${titleText}</h2>`
+    +`</div></div>`;
+  const amdSubBlock=`<div class="sub" id="doc-main-sub">${subtitleText}</div>`;
   const amdReasonBlock=reasonText
     ?`<div style="text-align:center;font-style:italic;font-size:9px;margin-bottom:8px;color:#333;font-weight:600;">${reasonText}</div>`
     :'';
 
+  let html;
   if(isTeachers){
-    const allTeachers=doc.data.teachers||[];
-    const selTeachers=selectedIndexes.map(i=>allTeachers[i]).filter(Boolean);
+    const selTeachers=selectedIndexes.map(i=>_amdPeople[i]&&_amdPeople[i].raw).filter(Boolean);
     const rows=buildRowsFromSavedTeachers(selTeachers);
-    let html=renderTarifTableHTML(rows,school,year,dir,newDate,forPrint);
-    html=html.replace(
-      '<h2>ТАРИФІКАЦІЙНА ВІДОМІСТЬ ПЕДАГОГІЧНИХ ПРАЦІВНИКІВ</h2>',
-      amdTitleBlock
-    ).replace(
-      `<div class="sub">${school} · Навчальний рік ${year} · Дата тарифікації: ${doc.date||''}`,
-      amdSubBlock
-    );
-    if(reasonText){
-      html=html.replace('<table>',amdReasonBlock+'<table>');
-    }
-    return html;
+    html=renderTarifTableHTML(rows,school,year,dir,newDate,forPrint);
   } else {
-    const allPeople=doc.data.people||[];
-    const selPeople=selectedIndexes.map(i=>allPeople[i]).filter(Boolean);
-    let html=renderFCTableHTML(selPeople,school,year,dir,newDate,doc.categoryLabel||'',forPrint);
-    html=html.replace(
-      `<h2>ТАРИФІКАЦІЙНА ВІДОМІСТЬ${doc.categoryLabel?' — '+doc.categoryLabel.toUpperCase():''}`,
-      amdTitleBlock+'<h2 style="display:none;"'
-    ).replace(
-      `<div class="sub">${school} · Навчальний рік ${year} · Дата тарифікації: ${doc.date||''}`,
-      amdSubBlock
-    );
-    if(reasonText){
-      html=html.replace('<table>',amdReasonBlock+'<table>');
-    }
-    return html;
+    const selPeople=selectedIndexes.map(i=>_amdPeople[i]&&_amdPeople[i].raw).filter(Boolean);
+    html=renderFCTableHTML(selPeople,school,year,dir,newDate,doc.categoryLabel||'',forPrint);
   }
+
+  // Замінюємо заголовок і підзаголовок через id-маркери
+  html=html.replace(/<h2 id="doc-main-title">[^<]*<\/h2>/,amdTitleBlock);
+  html=html.replace(/<div class="sub" id="doc-main-sub">[^<]*<\/div>/,amdSubBlock);
+  if(reasonText){
+    html=html.replace('<table>',amdReasonBlock+'<table>');
+  }
+  return html;
 }
 
 function previewAmendment(){
@@ -6641,12 +7553,9 @@ async function saveAmendment(){
   const monthKey=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
 
   // Зібрати вибраних
-  let selPeople;
-  if(isTeachers){
-    selPeople=(doc.data.teachers||[]).filter((_,i)=>sel.includes(i));
-  } else {
-    selPeople=(doc.data.people||[]).filter((_,i)=>sel.includes(i));
-  }
+  const selPeople=sel.map(i=>_amdPeople[i]&&_amdPeople[i].raw).filter(Boolean);
+  let selTeachers, selFC;
+  if(isTeachers){ selTeachers=selPeople; } else { selFC=selPeople; }
 
   const title='Зміни до тарифікації'+(reason?' ('+reason+')':'')
     +' — '+catLabel+' '+school;
@@ -6665,9 +7574,9 @@ async function saveAmendment(){
     reason:reason,
     savedAt:now.toLocaleString('uk-UA',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}),
     data: isTeachers
-      ?{school,dir:(doc.data&&doc.data.dir)||info.dir||'',year,date:newDate,teachers:selPeople}
+      ?{school,dir:(doc.data&&doc.data.dir)||info.dir||'',year,date:newDate,teachers:selTeachers}
       :{school,dir:(doc.data&&doc.data.dir)||info.dir||'',year,date:newDate,
-        category:doc.category,categoryLabel:doc.categoryLabel,people:selPeople}
+        category:doc.category,categoryLabel:doc.categoryLabel,people:selFC}
   };
 
   const docs=await getCabDocs();
